@@ -459,19 +459,53 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('.search-container')) searchResults.style.display = 'none';
 });
 
+
+// Add this CSS for pulsating animation
+const pulseStyle = document.createElement('style');
+pulseStyle.textContent = `
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(108, 134, 207, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 15px rgba(108, 134, 207, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 30px rgba(108, 134, 207, 0);
+        }
+    }
+    
+    .pulsating-dot {
+        width: 12px;
+        height: 12px;
+        background: #6c86cf;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+`;
+document.head.appendChild(pulseStyle);
+
+// Update the zoomToKindergarten function to add pulsating marker
 function zoomToKindergarten(lngLat) {
     if (marker) marker.remove();
-    marker = new mapboxgl.Marker({ color: '#6c86cf' }).setLngLat([lngLat.lng, lngLat.lat]).addTo(map);
+    
+    // Create pulsating dot element
+    const pulseElement = document.createElement('div');
+    pulseElement.className = 'pulsating-dot';
+    
+    // Add marker with pulsating dot
+    marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+        .setLngLat([lngLat.lng, lngLat.lat])
+        .addTo(map);
 
-    // Fly to location
     map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, speed: 1.2 });
 
-    // Generate isochrone after fly animation
     generateKindergartenIsochrone(lngLat);
 }
 
+// Update generateKindergartenIsochrone to ensure marker stays visible
 function generateKindergartenIsochrone(lngLat) {
-    const time = 15; // or get dynamically from UI if needed
+    const time = 15;
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
 
     fetch(url)
@@ -479,7 +513,6 @@ function generateKindergartenIsochrone(lngLat) {
         .then(data => {
             if (!data.features || data.features.length === 0) return;
 
-            // Update or add isochrone source and layer
             if (map.getSource('iso')) {
                 map.getSource('iso').setData(data);
             } else {
@@ -495,11 +528,20 @@ function generateKindergartenIsochrone(lngLat) {
                 });
             }
 
-            // Fit map bounds to the isochrone
+            // Fit bounds but keep marker visible
             const bbox = turf.bbox(data.features[0]);
             map.fitBounds(bbox, { padding: 50, maxZoom: 17, minZoom: 12 });
 
-            // Aggregate results inside isochrone
+            // Re-add marker to ensure it's on top
+            if (marker) {
+                marker.remove();
+                const pulseElement = document.createElement('div');
+                pulseElement.className = 'pulsating-dot';
+                marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+                    .setLngLat([lngLat.lng, lngLat.lat])
+                    .addTo(map);
+            }
+
             const aggregated = aggregateResultsInIsochrone(data.features[0]);
             displayAggregatedResults(aggregated);
             document.getElementById('aggregateResults').style.display = 'block';
