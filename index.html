@@ -503,7 +503,8 @@ function zoomToKindergarten(lngLat) {
     generateKindergartenIsochrone(lngLat);
 }
 
-// Update generateKindergartenIsochrone to ensure marker stays visible
+
+// Update generateKindergartenIsochrone to show data points
 function generateKindergartenIsochrone(lngLat) {
     const time = 15;
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
@@ -528,8 +529,52 @@ function generateKindergartenIsochrone(lngLat) {
                 });
             }
 
+            // Find survey data points within isochrone
+            const isochroneFeature = data.features[0];
+            const pointsInIsochrone = {
+                type: 'FeatureCollection',
+                features: []
+            };
+
+            surveyDataGeoJSON.features.forEach(feature => {
+                const point = turf.point(feature.geometry.coordinates);
+                try {
+                    if (turf.booleanPointInPolygon(point, isochroneFeature)) {
+                        pointsInIsochrone.features.push({
+                            type: 'Feature',
+                            geometry: feature.geometry,
+                            properties: {
+                                gridName: feature.properties.gridName,
+                                responses: feature.properties.responses.length
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error checking point:', err);
+                }
+            });
+
+            // Add or update data points layer
+            if (map.getSource('isochrone-points')) {
+                map.getSource('isochrone-points').setData(pointsInIsochrone);
+            } else {
+                map.addSource('isochrone-points', { type: 'geojson', data: pointsInIsochrone });
+                map.addLayer({
+                    id: 'isochrone-points-layer',
+                    type: 'circle',
+                    source: 'isochrone-points',
+                    paint: {
+                        'circle-radius': 5,
+                        'circle-color': '#810f7c',
+                        'circle-opacity': 0.7,
+                        'circle-stroke-width': 1,
+                        'circle-stroke-color': '#ffffff'
+                    }
+                });
+            }
+
             // Fit bounds but keep marker visible
-            const bbox = turf.bbox(data.features[0]);
+            const bbox = turf.bbox(isochroneFeature);
             map.fitBounds(bbox, { padding: 50, maxZoom: 17, minZoom: 12 });
 
             // Re-add marker to ensure it's on top
@@ -542,7 +587,7 @@ function generateKindergartenIsochrone(lngLat) {
                     .addTo(map);
             }
 
-            const aggregated = aggregateResultsInIsochrone(data.features[0]);
+            const aggregated = aggregateResultsInIsochrone(isochroneFeature);
             displayAggregatedResults(aggregated);
             document.getElementById('aggregateResults').style.display = 'block';
         })
@@ -572,8 +617,8 @@ function generateKindergartenIsochrone(lngLat) {
             if (tab === 'survey') {
                 document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
                 document.getElementById('surveyTab').classList.add('active');
-                if (marker) marker.remove();
-                marker = null;
+                //if (marker) marker.remove();
+                //marker = null;
                 if (map.getSource('iso')) {
                     map.getSource('iso').setData({ type: 'FeatureCollection', features: [] });
                 }
