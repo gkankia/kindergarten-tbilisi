@@ -465,20 +465,20 @@ const pulseStyle = document.createElement('style');
 pulseStyle.textContent = `
     @keyframes pulse {
         0% {
-            box-shadow: 0 0 0 0 rgba(108, 134, 207, 0.7);
+            box-shadow: 0 0 0 0 rgba(213, 62, 79, 0.7);
         }
         50% {
-            box-shadow: 0 0 0 15px rgba(108, 134, 207, 0);
+            box-shadow: 0 0 0 15px rgba(213, 62, 79, 0);
         }
         100% {
-            box-shadow: 0 0 0 30px rgba(108, 134, 207, 0);
+            box-shadow: 0 0 0 30px rgba(213, 62, 79, 0);
         }
     }
     
     .pulsating-dot {
-        width: 12px;
-        height: 12px;
-        background: #6c86cf;
+        width: 16px;
+        height: 16px;
+        background: #d53e4f;
         border-radius: 50%;
         animation: pulse 2s infinite;
     }
@@ -833,17 +833,17 @@ function generateKindergartenIsochrone(lngLat) {
                         `<strong>არსებული პასუხები:</strong> ${props.count}`;
                     modal.style.display = 'block';
                 }
-            } else if (currentTab === 'results') {
-                if (marker) marker.remove();
-                marker = new mapboxgl.Marker({ color: '#6c86cf', anchor: 'center' }).setLngLat(e.lngLat).addTo(map);
-                generateResultsIsochrone(e.lngLat);
-            } else if (currentTab === 'kindergartens') {
-                const features = map.queryRenderedFeatures(e.point, { layers: ['kindergartens-layer'] });
-                if (features.length > 0) {
-                    const coords = features[0].geometry.coordinates;
-                    zoomToKindergarten(coords[0], coords[1]);
-                }
-            }
+            } //else if (currentTab === 'results') {
+                //if (marker) marker.remove();
+                //marker = new mapboxgl.Marker({ color: '#6c86cf', anchor: 'center' }).setLngLat(e.lngLat).addTo(map);
+                //generateResultsIsochrone(e.lngLat);
+            //} else if (currentTab === 'kindergartens') {
+                //const features = map.queryRenderedFeatures(e.point, { layers: ['kindergartens-layer'] });
+                //if (features.length > 0) {
+                  //  const coords = features[0].geometry.coordinates;
+                  //  zoomToKindergarten(coords[0], coords[1]);
+               // }
+           // }
         });
                 
         function generateResultsIsochrone(lngLat) {
