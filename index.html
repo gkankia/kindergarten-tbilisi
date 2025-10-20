@@ -717,7 +717,7 @@
                     chartInstances.accidents = new Chart(ctx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['მძიმე (injury)', 'მსუბუქი (soft)'],
+                            labels: ['მძიმე', 'მსუბუქი'],
                             datasets: [{
                                 data: [categories['მძიმე'] || 0, categories['მსუბუქი'] || 0],
                                 backgroundColor: ['#e63946', '#f77f00'],
@@ -831,10 +831,10 @@
                 new mapboxgl.LngLatBounds(route.coordinates[0], route.coordinates[0])
             );
             map.fitBounds(routeBounds, {
-                padding: 100,
+                padding: { top: 0, bottom: 0, left: 0, right: 0 },
                 duration: 1000,
-                bearing: 10,
-                pitch: 20
+                bearing: 0,
+                pitch: 60
             });
             
             // Determine speed label text and style
@@ -892,7 +892,17 @@
                 else if (prob <= 0.3) return 'rgba(255,165,0,0.8)';
                 else return 'rgba(255,0,0,0.8)';
             };
-            const severeCrashMessage = `ამ არეალში გასულ წელს, <span style="background-color: rgba(255,0,0,0.8); color:#fff; padding:2px 4px; border-radius:4px;"<b>${severeCrashes}</b></span> შემთხვევა დაფიქსირდა სხეულის დაზიანებით. მათი განმეორების ალბათობა კი <span style="background-color: ${getProbColor(severeCrashProb)}; color:#fff; padding:2px 4px; border-radius:4px;">${severeCrashProb.toFixed(2)}</span> შემთხვევას შეადგენს ყოველ ერთ კილომეტრიან მონაკვეთზე.`;
+
+            let severeCrashMessage;
+            if (severeCrashes === 0) {
+                severeCrashMessage = `ამ არეალში, გასულ წელს, მძიმე შემთხვევები, სხეულის დაზიანებით, არ დაფიქსირებულა.`;
+            } else if (severeCrashProb === 0) {
+                severeCrashMessage = `<span style="color:gray;">მონაცემები არასაკმარისია მძიმე შემთხვევების ალბათობის შეფასებისთვის.</span>`;
+            } else {
+                severeCrashMessage = `ამ არეალში, გასულ წელს, <span style="background-color: rgba(255,0,0,0.8); color:#fff; padding:2px 4px; border-radius:4px;"><b>${severeCrashes}</b></span> შემთხვევა დაფიქსირდა, სხეულის დაზიანებით. მძიმე შემთხვევების განმეორების ალბათობა <span style="background-color: ${getProbColor(severeCrashProb)}; color:#fff; padding:2px 4px; border-radius:4px;">${severeCrashProb.toFixed(2)}</span> შეადგენს ყოველ ერთ კილომეტრზე.`;
+            }
+
+            //const severeCrashMessage = `ამ არეალში გასულ წელს, <span style="background-color: rgba(255,0,0,0.8); color:#fff; padding:2px 4px; border-radius:4px;"<b>${severeCrashes}</b></span> შემთხვევა დაფიქსირდა სხეულის დაზიანებით. მათი განმეორების ალბათობა კი <span style="background-color: ${getProbColor(severeCrashProb)}; color:#fff; padding:2px 4px; border-radius:4px;">${severeCrashProb.toFixed(2)}</span> შემთხვევას შეადგენს ყოველ ერთ კილომეტრიან მონაკვეთზე.`;
             //const lightCrashMessage = `მსუბუქი შემთხვევების ალბათობა: <span style="background-color: ${getProbColor(lightCrashProb)}; color:#fff; padding:2px 4px; border-radius:4px;">${lightCrashProb.toFixed(2)} / კმ</span>`;
 
             // --- Add popup ---
@@ -902,23 +912,50 @@
                 const durationMin = Math.round(duration / 60);
 
                 // Create popup element once
-            let routePopupDiv = document.getElementById('routePopup');
-            if (!routePopupDiv) {
-                routePopupDiv = document.createElement('div');
-                routePopupDiv.id = 'routePopup';
-                map.getContainer().appendChild(routePopupDiv);
-            }
-
-            // Update its content dynamically
-            routePopupDiv.innerHTML = `
-                    <div>
+                let routePopupDiv = document.getElementById('routePopup');
+                if (!routePopupDiv) {
+                    routePopupDiv = document.createElement('div');
+                    routePopupDiv.id = 'routePopup';
+                    routePopupDiv.style.display = 'block';  // ensure it's visible
+                    map.getContainer().appendChild(routePopupDiv);
+                } else {
+                    routePopupDiv.style.display = 'block';
+                }
+                
+                // Update content with collapsible section
+                routePopupDiv.innerHTML = `
+                    <div id="routePopupContent">
                         <div>ამ მანძილის <b>(${distanceKm} კმ)</b> ${translatedMode} გავლას, 
                             <b>${durationMin}</b> წთ დასჭირდება. ${speedMessage}</div>
                         <div>${severeCrashMessage}</div>
-                    </div>`
-            }       
-        
-    }
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-top: 8px;">
+                        <button id="routePopupToggle" style="
+                            background: rgba(0,0,0,0);
+                            color: #fff;
+                            border: none;
+                            border-radius: 3px;
+                            padding: 2px 6px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">▲</button>
+                    </div>
+                `;
+                
+                // Add toggle functionality
+                const toggleBtn = document.getElementById('routePopupToggle');
+                const popupContent = document.getElementById('routePopupContent');
+                toggleBtn.onclick = () => {
+                    if (popupContent.style.display === 'none') {
+                        popupContent.style.display = 'block';
+                        toggleBtn.textContent = '▲'; 
+                    } else {
+                        popupContent.style.display = 'none';
+                        toggleBtn.textContent = '▼';
+                    }
+                }
+            }
+        }
 
         // --- ROUTE FROM USER TO SELECTED POINT ---
         function showRouteToSelected(destinationCoords, mode = 'walking', permanent = false) {
@@ -1064,16 +1101,32 @@
                 return html;
             }).join('');
 
+            let currentHoveredFeatureName = null; // track which item is currently hovered
+
             // ---- Add hover & click behavior ----
             pointsInIsochrone.forEach((feature, index) => {
                 const item = list.children[index];
                 if (!item) return;
 
                 const featureLngLat = feature.geometry.coordinates;
+                const isSelected = feature.properties.name === currentSelectedKindergartenName;
 
                 // Hover: animate point and show temporary route
                 item.addEventListener('mouseenter', () => {
+                    if (isSelected) return; // <-- skip popup if hovering selected item
                     if (!map.getLayer('isochrone-points-layer')) return;
+
+                    // Remove previous temp route and popup only if hovering a new item
+                    if (currentHoveredFeatureName && currentHoveredFeatureName !== feature.properties.name) {
+                        if (map.getLayer('temp-route-line')) {
+                            map.removeLayer('temp-route-line');
+                            map.removeSource('temp-route');
+                        }
+                        const existingPopup = document.getElementById('routePopup');
+                        if (existingPopup) existingPopup.remove();
+                    }
+
+                    currentHoveredFeatureName = feature.properties.name;
 
                     // Smooth circle animation
                     map.setPaintProperty('isochrone-points-layer', 'circle-radius', [
@@ -1098,23 +1151,25 @@
                     showRoute(from, featureLngLat, resultsMode, false);
                 });
 
-                item.addEventListener('mouseleave', () => {
+                //item.addEventListener('mouseleave', () => {
                     // Reset visuals
-                    if (!map.getLayer('isochrone-points-layer')) return;
+                  //  if (!map.getLayer('isochrone-points-layer')) return;
 
-                    map.setPaintProperty('isochrone-points-layer', 'circle-radius', 4);
-                    map.setPaintProperty('isochrone-points-layer', 'circle-color', '#ae017e');
+                  //  map.setPaintProperty('isochrone-points-layer', 'circle-radius', 4);
+                  //  map.setPaintProperty('isochrone-points-layer', 'circle-color', '#ae017e');
 
                     // Remove route & popup
-                    if (map.getLayer('temp-route-line')) {
-                        map.removeLayer('temp-route-line');
-                        map.removeSource('temp-route');
-                    }
-                    if (tempRoutePopup) {
-                        tempRoutePopup.remove();
-                        tempRoutePopup = null;
-                    }
-                });
+                  //  if (map.getLayer('temp-route-line')) {
+                  //      map.removeLayer('temp-route-line');
+                  //      map.removeSource('temp-route');
+                    //}
+                    
+                    // Remove custom popup div if it exists
+                   // const existingPopup = document.getElementById('routePopup');
+                   // if (existingPopup) {
+                     //   existingPopup.remove();
+                  //  }
+                //});
 
                 // Click: zoom, select, and show permanent route
                 item.addEventListener('click', () => {
