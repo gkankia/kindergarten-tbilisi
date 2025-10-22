@@ -709,56 +709,55 @@
             });
             
             // Ensure chartInstances object exists
-if (!window.chartInstances) window.chartInstances = {};
+            if (!window.chartInstances) window.chartInstances = {};
 
-// Small timeout to ensure canvas exists in DOM
-setTimeout(() => {
-    const ctx = document.getElementById('accidentCategoryChart')?.getContext('2d');
-    if (!ctx) return;
+            // Small timeout to ensure canvas exists in DOM
+            setTimeout(() => {
+                const ctx = document.getElementById('accidentCategoryChart')?.getContext('2d');
+                if (!ctx) return;
 
-    // Destroy existing chart if present
-    if (chartInstances.accidents) {
-        chartInstances.accidents.destroy();
-    }
+                // Destroy existing chart if present
+                if (chartInstances.accidents) {
+                    chartInstances.accidents.destroy();
+                }
 
-    // Reuse same chartConfig as genderChart
-    const chartConfig = {
-        responsive: true,
-        maintainAspectRatio: true,
-        cutout: '75%',
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom',
-                labels: { font: { size: 10 } }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 8,
-                titleFont: { size: 11 },
-                bodyFont: { size: 10 }
-            }
-        }
-    };
+                // Reuse same chartConfig as genderChart
+                const chartConfig = {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { font: { size: 10 } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 8,
+                            titleFont: { size: 11 },
+                            bodyFont: { size: 10 }
+                        }
+                    }
+                };
 
-    chartInstances.accidents = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['მძიმე', 'მსუბუქი'],
-            datasets: [{
-                data: [
-                    categories['მძიმე'] || 0, 
-                    categories['მსუბუქი'] || 0
-                ],
-                backgroundColor: ['#a50f15', '#225ea8'],
-                borderWidth: 0
-            }]
-        },
-        options: chartConfig
-    });
+                chartInstances.accidents = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['მძიმე', 'მსუბუქი'],
+                        datasets: [{
+                            data: [
+                                categories['მძიმე'] || 0, 
+                                categories['მსუბუქი'] || 0
+                            ],
+                            backgroundColor: ['#a50f15', '#225ea8'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: chartConfig
+                });
 
-}, 100);
-            
+            }, 100);
         }
 
         /**
