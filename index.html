@@ -8,7 +8,8 @@
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    
  
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -139,12 +140,12 @@
         
         .chart-wrapper {
             position: relative;
-            height: 200px;
+            height: 75%;
             margin-bottom: 5px;
         }
         
-        .chart-wrapper.small { height: 180px; }
-        .chart-wrapper.tiny { height: 150px; }
+        .chart-wrapper.small { height: 50%; }
+        .chart-wrapper.tiny { height: 50%; }
         
         .dropdown-header {
             background: #f4f4f4;
@@ -707,44 +708,56 @@
                 categories[cat] = (categories[cat] || 0) + 1;
             });
             
-            // Create chart
-            setTimeout(() => {
-                const ctx = document.getElementById('accidentCategoryChart')?.getContext('2d');
-                if (ctx) {
-                    if (chartInstances.accidents) {
-                        chartInstances.accidents.destroy();
-                    }
-                    chartInstances.accidents = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['მძიმე', 'მსუბუქი'],
-                            datasets: [{
-                                data: [categories['მძიმე'] || 0, categories['მსუბუქი'] || 0],
-                                backgroundColor: ['#e63946', '#f77f00'],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            cutout: '65%',
-                            plugins: {
-                                legend: { 
-                                    display: true, 
-                                    position: 'bottom', 
-                                    labels: { font: { size: 10 } } 
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 8,
-                                    titleFont: { size: 11 },
-                                    bodyFont: { size: 10 }
-                                }
-                            }
-                        }
-                    });
-                }
-            }, 100);
+            // Ensure chartInstances object exists
+if (!window.chartInstances) window.chartInstances = {};
+
+// Small timeout to ensure canvas exists in DOM
+setTimeout(() => {
+    const ctx = document.getElementById('accidentCategoryChart')?.getContext('2d');
+    if (!ctx) return;
+
+    // Destroy existing chart if present
+    if (chartInstances.accidents) {
+        chartInstances.accidents.destroy();
+    }
+
+    // Reuse same chartConfig as genderChart
+    const chartConfig = {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '75%',
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: { font: { size: 10 } }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 8,
+                titleFont: { size: 11 },
+                bodyFont: { size: 10 }
+            }
+        }
+    };
+
+    chartInstances.accidents = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['მძიმე', 'მსუბუქი'],
+            datasets: [{
+                data: [
+                    categories['მძიმე'] || 0, 
+                    categories['მსუბუქი'] || 0
+                ],
+                backgroundColor: ['#a50f15', '#225ea8'],
+                borderWidth: 0
+            }]
+        },
+        options: chartConfig
+    });
+
+}, 100);
             
         }
 
@@ -916,20 +929,39 @@
                 if (!routePopupDiv) {
                     routePopupDiv = document.createElement('div');
                     routePopupDiv.id = 'routePopup';
-                    routePopupDiv.style.display = 'block';  // ensure it's visible
+                    routePopupDiv.style.display = 'block';
+                    routePopupDiv.style.position = 'absolute';
+                    routePopupDiv.style.top = '10px';
+                    routePopupDiv.style.right = '50px';
+                    routePopupDiv.style.background = 'rgba(58, 111, 161, 0.193)';
+                    routePopupDiv.style.color = '#fff';
+                    routePopupDiv.style.backdropFilter = 'blur(2px)';
+                    routePopupDiv.style.padding = '15px';
+                    routePopupDiv.style.borderRadius = '8px';
+                    routePopupDiv.style.fontFamily = "'JetBrains Mono', monospace";
+                    routePopupDiv.style.lineHeight = '1.25rem';
+                    routePopupDiv.style.boxShadow = '0 0 30px 0 rgba(255, 255, 255, 0.25)';
+                    routePopupDiv.style.maxWidth = '300px';
+                    routePopupDiv.style.zIndex = '999';
                     map.getContainer().appendChild(routePopupDiv);
                 } else {
                     routePopupDiv.style.display = 'block';
                 }
-                
-                // Update content with collapsible section
+
+                // --- Update content with collapsible section ---
                 routePopupDiv.innerHTML = `
                     <div id="routePopupContent">
-                        <div>ამ მანძილის <b>(${distanceKm} კმ)</b> ${translatedMode} გავლას, 
-                            <b>${durationMin}</b> წთ დასჭირდება. ${speedMessage}</div>
+                        <div>
+                            ამ მანძილის <b>(${distanceKm} კმ)</b> ${translatedMode} გავლას, 
+                            <b>${durationMin}</b> წთ დასჭირდება. ${speedMessage}
+                        </div>
                         <div>${severeCrashMessage}</div>
+                        <div id="elevationContainer" style="margin-top:10px; display:none;">
+                            <canvas id="elevationChart" height="100"></canvas>
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: center; margin-top: 8px;">
+
+                    <div style="display:flex; justify-content:center; margin-top:8px;">
                         <button id="routePopupToggle" style="
                             background: rgba(0,0,0,0);
                             color: #fff;
@@ -941,21 +973,23 @@
                         ">▲</button>
                     </div>
                 `;
-                
-                // Add toggle functionality
+
+                // --- Toggle Functionality ---
                 const toggleBtn = document.getElementById('routePopupToggle');
                 const popupContent = document.getElementById('routePopupContent');
                 toggleBtn.onclick = () => {
                     if (popupContent.style.display === 'none') {
                         popupContent.style.display = 'block';
-                        toggleBtn.textContent = '▲'; 
+                        toggleBtn.textContent = '▲';
                     } else {
                         popupContent.style.display = 'none';
                         toggleBtn.textContent = '▼';
                     }
-                }
+                };
+
             }
         }
+
 
         // --- ROUTE FROM USER TO SELECTED POINT ---
         function showRouteToSelected(destinationCoords, mode = 'walking', permanent = false) {
@@ -1311,7 +1345,7 @@
                 .setLngLat([lngLat.lng, lngLat.lat])
                 .addTo(map);
 
-            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, speed: 0.1 });
+            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, speed: 1, });
             generateKindergartenIsochrone(lngLat);
         }
 
@@ -1345,7 +1379,7 @@
                     updatePointsLayer(isochroneFeature);
 
                     const bbox = turf.bbox(isochroneFeature);
-                    map.fitBounds(bbox, { padding: 50, maxZoom: 17, minZoom: 12 });
+                    map.fitBounds(bbox, { padding: 0, maxZoom: 19, minZoom: 12 });
 
                     if (marker) {
                         marker.remove();
@@ -1387,7 +1421,7 @@
                     updatePointsLayer(isochroneFeature);
 
                     const bbox = turf.bbox(isochroneFeature);
-                    map.fitBounds(bbox, { padding: 50, maxZoom: 17, minZoom: 12 });
+                    map.fitBounds(bbox, { padding: 0, maxZoom: 20, minZoom: 12 });
 
                     const aggregated = aggregateResultsInIsochrone(isochroneFeature);
                     displayAggregatedResults(aggregated);
@@ -1467,7 +1501,7 @@
                             labels: Object.keys(data.gender).map(k => genderLabels[k] || k),
                             datasets: [{ data: Object.values(data.gender), backgroundColor: ['#6c86cf', '#a8b9e3', '#e3f0fc'], borderWidth: 0 }]
                         },
-                        options: { ...chartConfig, cutout: '65%' }
+                        options: { ...chartConfig, cutout: '75%' }
                     });
                 }
             }
