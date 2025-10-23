@@ -311,22 +311,22 @@
                     <div class="radio-group">
                         <label><input type="radio" name="gender" value="male" required> მამრობითი</label>
                         <label><input type="radio" name="gender" value="female"> მდედრობითი</label>
-                        <label><input type="radio" name="gender" value="other"> სხვა</label>
+                        <!--<label><input type="radio" name="gender" value="other"> სხვა</label>-->
                     </div>
                 </div>
                 <div class="question">
-                    <label>3. რომელ პარტიას მისცემთ ხმას?</label>
-                    <select name="vote" required>
+                    <label>3. რამდენად უსაფრთხოა ბაღთან/სკოლასთან ფეხით სიარული, მათ შორის გზის გადაკვეთა?</label>
+                    <select name="safety_rating" required>
                         <option value="">აირჩიეთ...</option>
-                        <option value="qocebi">ქართული ოცნება</option>
-                        <option value="lelo">ლელო</option>
-                        <option value="gakharia">გახარია</option>
-                        <option value="boycott">ბოიკოტი</option>
-                        <option value="undecided">გადაუწყვეტელი</option>
+                        <option value="very_unsafe">ძალიან სახიფათოა</option>
+                        <option value="somewhat_unsafe">მეტწილად სახიფათოა</option>
+                        <option value="neutral">საშუალო</option>
+                        <option value="somewhat_safe">მეტწილად უსაფრთხოა</option>
+                        <option value="very_safe">ძალიან უსაფრთხო</option>
                     </select>
                 </div>
                 <div class="question">
-                    <label>4. ეკონომიკის შეფასება:</label>
+                    <label>4. ?</label>
                     <select name="economy" required>
                         <option value="">აირჩიეთ...</option>
                         <option value="very_good">ძალიან კარგი</option>
@@ -579,7 +579,7 @@
                             timestamp: row[0],
                             age: row[5],
                             gender: row[6],
-                            vote: row[7],
+                            safety_rating: row[7],
                             economy: row[8],
                             priority: row[9]
                         });
@@ -1430,7 +1430,7 @@
         }
         
         function aggregateResultsInIsochrone(isochronePolygon) {
-            const aggregated = { total: 0, age: {}, gender: {}, vote: {}, economy: {}, priority: {}, grids: [] };
+            const aggregated = { total: 0, age: {}, gender: {}, safety_rating: {}, economy: {}, priority: {}, grids: [] };
             surveyDataGeoJSON.features.forEach(feature => {
                 const point = turf.point(feature.geometry.coordinates);
                 try {
@@ -1441,7 +1441,7 @@
                             aggregated.total++;
                             if (response.age) aggregated.age[response.age] = (aggregated.age[response.age] || 0) + 1;
                             if (response.gender) aggregated.gender[response.gender] = (aggregated.gender[response.gender] || 0) + 1;
-                            if (response.vote) aggregated.vote[response.vote] = (aggregated.vote[response.vote] || 0) + 1;
+                            if (response.safety_rating) aggregated.safety_rating[response.safety_rating] = (aggregated.safety_rating[response.safety_rating] || 0) + 1;
                             if (response.economy) aggregated.economy[response.economy] = (aggregated.economy[response.economy] || 0) + 1;
                             if (response.priority) aggregated.priority[response.priority] = (aggregated.priority[response.priority] || 0) + 1;
                         });
@@ -1459,7 +1459,7 @@
                 return;
             }
             
-            const voteLabels = { qocebi: 'ქართული ოცნება', lelo: 'ლელო', gakharia: 'გახარია', boycott: 'ბოიკოტი', undecided: 'გადაუწყვეტელი' };
+            const safety_ratingLabels = { very_unsafe: 'ძალიან სახიფათოა', somewhat_unsafe: 'მეტწილად სახიფათოა', neutral: 'საშუალო', somewhat_safe: 'მეტწილად უსაფრთხოა', very_safe: 'ძალიან უსაფრთხო' };
             const priorityLabels = { economy: 'ეკონომიკა', democracy: 'დემოკრატია', eu: 'ევროინტეგრაცია', security: 'უსაფრთხოება', education: 'განათლება' };
             const economyLabels = { very_good: 'ძალიან კარგი', good: 'კარგი', neutral: 'საშუალო', bad: 'ცუდი', very_bad: 'ძალიან ცუდი' };
             const genderLabels = { male: 'კაცი', female: 'ქალი', other: 'სხვა' };
@@ -1470,16 +1470,16 @@
             let html = `<div class="aggregate-stat"><strong>სულ პასუხი:</strong> ${data.total}</div>`;
             
             if (Object.keys(data.gender).length > 0) html += `<div class="chart-container"><h4>სქესი</h4><div class="chart-wrapper tiny"><canvas id="genderChart"></canvas></div></div>`;
-            if (Object.keys(data.vote).length > 0) html += `<div class="chart-container"><h4>პარტიული გადანაწილება</h4><div class="chart-wrapper small"><canvas id="voteChart"></canvas></div></div>`;
+            if (Object.keys(data.safety_rating).length > 0) html += `<div class="chart-container"><h4>პარტიული გადანაწილება</h4><div class="chart-wrapper small"><canvas id="safety_ratingChart"></canvas></div></div>`;
             if (Object.keys(data.priority).length > 0) html += `<div class="chart-container"><h4>პრიორიტეტები</h4><div class="chart-wrapper small"><canvas id="priorityChart"></canvas></div></div>`;
             if (Object.keys(data.economy).length > 0) html += `<div class="chart-container"><h4>ეკონომიკის შეფასება</h4><div class="chart-wrapper small"><canvas id="economyChart"></canvas></div></div>`;
             if (Object.keys(data.age).length > 0) html += `<div class="chart-container"><h4>ასაკი</h4><div class="chart-wrapper tiny"><canvas id="ageChart"></canvas></div></div>`;
             
             document.getElementById('aggregateContent').innerHTML = html;
-            setTimeout(() => createCharts(data, voteLabels, priorityLabels, economyLabels, genderLabels), 100);
+            setTimeout(() => createCharts(data, safety_ratingLabels, priorityLabels, economyLabels, genderLabels), 100);
         }
         
-        function createCharts(data, voteLabels, priorityLabels, economyLabels, genderLabels) {
+        function createCharts(data, safety_ratingLabels, priorityLabels, economyLabels, genderLabels) {
             if (typeof Chart === 'undefined') return;
             
             const chartConfig = {
@@ -1505,14 +1505,14 @@
                 }
             }
             
-            if (Object.keys(data.vote).length > 0) {
-                const ctx = document.getElementById('voteChart')?.getContext('2d');
+            if (Object.keys(data.safety_rating).length > 0) {
+                const ctx = document.getElementById('safety_ratingChart')?.getContext('2d');
                 if (ctx) {
-                    const sorted = Object.entries(data.vote).sort((a, b) => b[1] - a[1]);
-                    chartInstances.vote = new Chart(ctx, {
+                    const sorted = Object.entries(data.safety_rating).sort((a, b) => b[1] - a[1]);
+                    chartInstances.safety_rating = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: sorted.map(([k]) => voteLabels[k] || k),
+                            labels: sorted.map(([k]) => safety_ratingLabels[k] || k),
                             datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#6c86cf', borderRadius: 2, borderWidth: 0 }]
                         },
                         options: { indexAxis: 'y', ...chartConfig, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
@@ -1586,7 +1586,7 @@
                 lng: center[0],
                 age: formData.get('age'),
                 gender: formData.get('gender'),
-                vote: formData.get('vote'),
+                safety_rating: formData.get('safety_rating'),
                 economy: formData.get('economy'),
                 priority: formData.get('priority')
             };
@@ -1605,7 +1605,7 @@
                 timestamp: response.timestamp,
                 age: response.age,
                 gender: response.gender,
-                vote: response.vote,
+                safety_rating: response.safety_rating,
                 economy: response.economy,
                 priority: response.priority
             });
