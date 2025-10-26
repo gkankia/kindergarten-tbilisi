@@ -29,55 +29,61 @@
             <form id="surveyForm">
                 <div class="question">
                     <label>1. რა ასაკის ხართ?</label>
-                    <select name="age" required>
-                        <option value="">აირჩიეთ...</option>
-                        <option value="18-25">18-25</option>
-                        <option value="26-35">26-35</option>
-                        <option value="36-45">36-45</option>
-                        <option value="46-55">46-55</option>
-                        <option value="56+">56+</option>
-                    </select>
+                    <div class="radio-group">
+                        <label><input type="radio" name="age" value="17">&lt;17</label>
+                        <label><input type="radio" name="age" value="18-25">18-25</label>
+                        <label><input type="radio" name="age" value="26-35">26-35</label>
+                        <label><input type="radio" name="age" value="36-45">36-45</label>
+                        <label><input type="radio" name="age" value="45-55">45-55</label>
+                        <label><input type="radio" name="age" value="56+">56+</label>
+                    </div>
                 </div>
                 <div class="question">
                     <label>2. სქესი:</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="gender" value="male" required> მამრობითი</label>
+                        <label><input type="radio" name="gender" value="male" > მამრობითი</label>
                         <label><input type="radio" name="gender" value="female"> მდედრობითი</label>
                         <!--<label><input type="radio" name="gender" value="other"> სხვა</label>-->
                     </div>
                 </div>
                 <div class="question">
                     <label>3. რამდენად უსაფრთხოა ბაღთან/სკოლასთან ფეხით სიარული, მათ შორის გზის გადაკვეთა?</label>
-                    <select name="safety_rating" required>
-                        <option value="">აირჩიეთ...</option>
-                        <option value="very_unsafe">ძალიან სახიფათოა</option>
-                        <option value="somewhat_unsafe">მეტწილად სახიფათოა</option>
-                        <option value="neutral">საშუალო</option>
-                        <option value="somewhat_safe">მეტწილად უსაფრთხოა</option>
-                        <option value="very_safe">ძალიან უსაფრთხო</option>
-                    </select>
+                    <div class="radio-group">
+                        <label><input type="radio" name="safety" value="very_unsafe" > ძალიან სახიფათოა</label>
+                        <label><input type="radio" name="safety" value="somewhat_unsafe"> მეტწილად სახიფათოა</label>
+                        <label><input type="radio" name="safety" value="neutral"> საშუალო</label>
+                        <label><input type="radio" name="safety" value="somewhat_safe"> მეტწილად უსაფრთხოა</label>
+                        <label><input type="radio" name="safety" value="very_safe"> ძალიან უსაფრთხო</label>
+                    </div>
                 </div>
                 <div class="question">
-                    <label>4. ?</label>
-                    <select name="economy" required>
-                        <option value="">აირჩიეთ...</option>
-                        <option value="very_good">ძალიან კარგი</option>
-                        <option value="good">კარგი</option>
-                        <option value="neutral">საშუალო</option>
-                        <option value="bad">ცუდი</option>
-                        <option value="very_bad">ძალიან ცუდი</option>
-                    </select>
+                    <label>4. მონიშნე <u>სამი მთავარი მიზეზი,</u> რის გამოც, ამ არეალში, ბავშვისთვის გადაადგილება სახიფათო შეიძლება იყოს</label>
+                    <div class="checkbox-group">
+                      <label><input type="checkbox" name="reason" value="sidewalk" > ვიწრო ტროტუარი</label>
+                      <label><input type="checkbox" name="reason" value="speed"> საავტომობილო მოძრაობის მაღალი სიჩქარე</label>
+                      <label><input type="checkbox" name="reason" value="crossing"> უშუქნიშნო/მოუნიშნავი გადასასვლელი</label>
+                      <label><input type="checkbox" name="reason" value="road"> განიერი საავტომობილო ზოლები</label>
+                      <label><input type="checkbox" name="reason" value="drivers"> მძღოლების სახიფათო მანევრი</label>
+                      <label><input type="checkbox" name="reason" value="streetlighting"> ცუდი გარეგანათება</label>
+                      <!-- Other option -->
+                      <label><input type="checkbox" name="reason" value="other_reason" id="reasonOtherCheckbox"> სხვა:
+                        <input type="text" id="reasonOtherText" placeholder="შენი აზრი" style="margin-left:5px; display:none;">
+                      </label>
+                    </div>
                 </div>
                 <div class="question">
-                    <label>5. მთავარი პრიორიტეტი:</label>
-                    <select name="priority" required>
-                        <option value="">აირჩიეთ...</option>
-                        <option value="economy">ეკონომიკა</option>
-                        <option value="democracy">დემოკრატია</option>
-                        <option value="eu">ევროინტეგრაცია</option>
-                        <option value="security">უსაფრთხოება</option>
-                        <option value="education">განათლება</option>
-                    </select>
+                    <label>5. მონიშნე <u>სამი პრიორიტეტი,</u> რომელიც მნიშვნელოვანად მიგაჩნიათ ქუჩაში ბავშვების უსაფრთხო გადაადგილების უზრუნველსაყოფად</label>
+                    <div class="checkbox-group">
+                      <label><input type="checkbox" name="priority" value="better_sidewalk"> კეთილმოწყობილი ტროტუარები და მიმზიდველი საჯარო სივრცე</label>
+                      <label><input type="checkbox" name="priority" value="safe_crossing"> უსაფრთხო საფეხმავლო გადასასვლელები</label>
+                      <label><input type="checkbox" name="priority" value="enforcement"> მკაცრი კონტროლი საგზაო მოძრაობის წესების დარღვევაზე</label>
+                      <label><input type="checkbox" name="priority" value="limit_speed"> მაქს. დასაშვები სიჩქარის შეზღუდვა 30 კმ/სთ-მდე</label>
+                      <label><input type="checkbox" name="priority" value="infrastructure">ინრასტრუქტურული გაუმჯობესება (შუქნიშანი, გზის ინკლუზიური დიზაინი, და ა.შ.)</label>
+                      <!-- Other option -->
+                      <label><input type="checkbox" name="priority" value="other_priority" id="priorityOtherCheckbox"> სხვა:
+                        <input type="text" id="priorityOtherText" placeholder="შენი აზრი" style="margin-left:5px; display:none;">
+                      </label>
+                    </div>
                 </div>
                 <button class="send" type="submit">გაგზავნა</button>
             </form>
@@ -100,6 +106,7 @@
         
         <div class="sidebar">
             <div class="title"><h1>URBANYX</h1></div>
+            <div class="subtitle"><h3>უსაფრთხო გარემო ბავშვებისთვის</h3></div>
 
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchTab('survey')">კითხვარი</button>
@@ -108,29 +115,40 @@
             
             <div id="surveyTab" class="tab-content active">
                 <div class="section">
-                    <h3>ინსტრუქცია</h3>
-                    <p style="font-size: 12px; line-height: 1.6;">
-                        • დააკლიკე 500m x 500m grid უჯრედზე<br>
-                        • თითოეულ უჯრედს აქვს უნიკალური სახელი<br>
-                        • შეავსე კითხვარი<br>
-                        • პასუხები ინახება Google Sheets-ში
-                    </p>
+                    <button class="dropdown-toggle">გაეცანი, როგორ მუშაობს პლატფორმა ▼</button>
+                    <div class="dropdown-item">
+                        <p style="font-size: 12px; line-height: 1.6;">
+                            • იპოვე სასურველი საჯარო სკოლა თუ ბაღი შენს სიახლოვეს<br>
+                            • შეგიძლია გამოიყენო ავტომატური ნავიგაციის ღილაკიც<br>
+                            • დააკლიკე შესაბამის კვადრატზე<br>
+                            • შეავსე კითხვარი და შეგვატყობინე, რამდენად უსაფრთხოა ურბანული გარემო ბავშვებისთვის
+                        </p>
+                    </div>
                 </div>
             </div>
             
             <div id="resultsTab" class="tab-content">
                 <div class="section">
-                    <h3>ანალიზის პარამეტრები</h3>
-                    <p style="font-size: 12px; margin-bottom: 10px;">
-                        დააკლიკე რუკაზე სასურველ წერტილზე იზოქრონის შესაქმნელად.
-                    </p>
+                    <button class="dropdown-toggle">ინსტრუქცია ანალიზისთვის ▼</button>
+                    <div class="dropdown-item">
+                        <p style="font-size: 12px; line-height: 1.6;">
+                            • ანალიზის არეალი შეგიძლია აკონტროლო გადაადგილების დროისა და ფორმის მიხედვით<br>
+                            • ქვემოთ, შეგიძლია იხილო რას ფიქრობენ შენს მახლობლად მცხოვრები ადამიანები<br>
+                            • ჩამონათვალში ნახავ გეოგრაფიულად უახლოეს სასწავლო დაწესებულებებს<br>
+                            • კონკრეტულ დაწესებულებაზე მაუსის გადატარებით, იხილავ მასთან მისასვლელ მარშრუტს<br>
+                            • რუკის მარჯვენა კუთხეში, იხილავ, რამდენად უსაფრთხოა ეს მარშრუტი სკოლაში ან ბაღში მისასვლელად
+                        </p>
+                    </div>
+                </div>
+                    
+                <div class="section">
                     <label>გადაადგილების დრო (წუთი)</label>
                     <select id="timeResults">
                         <option value="10">10</option>
                         <option value="15" selected>15</option>
                         <option value="20">20</option>
                         <option value="25">25</option>
-                        <option value="30">30</option>
+                        <!--<option value="30">30</option>-->
                     </select>
                     
                     <label style="margin-top: 12px;">გადაადგილების ფორმა</label>
@@ -180,7 +198,50 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRShukywhUdgLnCoptNE5JCVOwthMVmj42_QpAtnDGyjzhTZIFsh9iBKADW6qWelWY/exec';
+        document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const isVisible = content.style.display === 'block';
+                content.style.display = isVisible ? 'none' : 'block';
+                btn.textContent = btn.textContent.replace(isVisible ? '▲' : '▼', isVisible ? '▼' : '▲');
+            });
+        });
+    </script>
+
+    <script>
+        function setupCheckboxGroup(groupName, otherCheckboxId, otherTextId, maxSelection = 3) {
+            const checkboxes = document.querySelectorAll(`input[name="${groupName}"]`);
+            const otherCheckbox = document.getElementById(otherCheckboxId);
+            const otherText = document.getElementById(otherTextId);
+        
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    // Count checked checkboxes including "Other"
+                    const checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
+        
+                    // Enforce max selection
+                    if (checkedCount > maxSelection) {
+                        cb.checked = false;
+                        alert(`მაქსიმუმ ${maxSelection} არჩევანი შეგიძლიათ მონიშნოთ.`);
+                    }
+        
+                    // Show/hide text input for "Other"
+                    if (cb === otherCheckbox) {
+                        otherText.style.display = cb.checked ? 'inline-block' : 'none';
+                    }
+                });
+            });
+        }
+        
+        // Initialize both groups
+        setupCheckboxGroup('reason', 'reasonOtherCheckbox', 'reasonOtherText', 3);
+        setupCheckboxGroup('priority', 'priorityOtherCheckbox', 'priorityOtherText', 3);
+    </script>
+
+
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCceueOadujC4ncuhZIPD2R6xpw0bDP1xMxHYmBtKKxSum2MPlsIqM1vtYzryk_eo8/exec';
         
         const GEORGIAN_WORDS = ['მზე', 'მთა', 'წყალი', 'ხე', 'ყვავილი', 'ქარი', 'ღრუბელი', 'მდინარე', 'ტბა', 'ველი', 'ტყე', 'ქვა', 'ცა', 'მიწა', 'ვარსკვლავი', 'მთვარე', 'ნისლი', 'თოვლი', 'წვიმა', 'რადიო', 'წიგნი', 'სახლი', 'გზა', 'ხიდი', 'კარი', 'ფანჯარა', 'ბაღი', 'ეზო', 'ქუჩა', 'მოედანი', 'ციხე', 'ეკლესია', 'მუზეუმი', 'პარკი', 'ბულვარი', 'სკვერი', 'ფონტანი', 'ძეგლი', 'თეატრი', 'კინო', 'ყურძენი', 'ვაშლი', 'მსხალი', 'ატამი', 'ფორთოხალი', 'ლიმონი', 'ჟოლო', 'კივი', 'ბანანი', 'საზამთრო'];
         
@@ -286,50 +347,54 @@
         let fixedGrid = buildFixedGrid();
         
         async function loadDataFromSheets() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL);
-                const data = await response.json();
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const data = await response.json();
+        
+        console.log('Raw data from sheets:', data); // DEBUG
+        
+        if (data.status === 'success' && data.rows) {
+            const gridMap = {};
+            
+            data.rows.forEach(row => {
+                const gridName = row[1];
+                const cellId = row[2];
+                const lat = parseFloat(row[3]);
+                const lng = parseFloat(row[4]);
                 
-                if (data.status === 'success' && data.rows) {
-                    const gridMap = {};
-                    
-                    data.rows.forEach(row => {
-                        const gridName = row[1];
-                        const cellId = row[2];
-                        const lat = parseFloat(row[3]);
-                        const lng = parseFloat(row[4]);
-                        
-                        if (!gridMap[gridName]) {
-                            gridMap[gridName] = {
-                                type: 'Feature',
-                                geometry: { type: 'Point', coordinates: [lng, lat] },
-                                properties: { gridName, cellId, responses: [] }
-                            };
-                        }
-                        
-                        gridMap[gridName].properties.responses.push({
-                            timestamp: row[0],
-                            age: row[5],
-                            gender: row[6],
-                            safety_rating: row[7],
-                            economy: row[8],
-                            priority: row[9]
-                        });
-                    });
-                    
-                    surveyDataGeoJSON.features = Object.values(gridMap);
-                    
-                    if (map.isStyleLoaded() && map.getSource('survey-data')) {
-                        map.getSource('survey-data').setData(surveyDataGeoJSON);
-                    }
-                    
-                    updateGridLayer();
-                    updateDataStatus();
+                console.log('Processing row - reason:', row[8], 'priority:', row[9]); // DEBUG
+                
+                if (!gridMap[gridName]) {
+                    gridMap[gridName] = {
+                        type: 'Feature',
+                        geometry: { type: 'Point', coordinates: [lng, lat] },
+                        properties: { gridName, cellId, responses: [] }
+                    };
                 }
-            } catch (err) {
-                console.error('Failed to load data:', err);
+                
+                gridMap[gridName].properties.responses.push({
+                    timestamp: row[0],
+                    age: row[5],
+                    gender: row[6],
+                    safety: row[7],
+                    reason: row[8] || '',
+                    priority: row[9] || ''
+                });
+            });
+            
+            surveyDataGeoJSON.features = Object.values(gridMap);
+            
+            console.log('Loaded features:', surveyDataGeoJSON.features); // DEBUG
+            console.log('Total responses loaded:', surveyDataGeoJSON.features.reduce((sum, f) => sum + f.properties.responses.length, 0)); // DEBUG
+            
+            if (map.isStyleLoaded() && map.getSource('survey-data')) {
+                map.getSource('survey-data').setData(surveyDataGeoJSON);
             }
         }
+    } catch (err) {
+        console.error('Failed to load data:', err);
+    }
+}
 
         // ============================================
         // 2. ADD THIS FUNCTION TO LOAD ACCIDENT DATA
@@ -1039,11 +1104,28 @@
                 document.getElementById('accidentResults').style.display = 'none';
                 document.getElementById('aggregateResults').style.display = 'none';
                 document.getElementById('kindergartenResults').style.display = 'none';
-                searchContainer.classList.remove('visible');
+                //searchContainer.classList.remove('visible'); //making searchbar visible for the survey tab as well
+
+                // Remove any existing routes
+                ['route-line', 'temp-route-line'].forEach(routeId => {
+                    if (map.getLayer(routeId)) map.removeLayer(routeId);
+                    const sourceId = routeId === 'route-line' ? 'route-source' : 'temp-route';
+                    if (map.getSource(sourceId)) map.removeSource(sourceId);
+                });
+
+                // Remove popup if exists
+                const routePopup = document.getElementById('routePopup');
+                if (routePopup) routePopup.style.display = 'none';
+                
             } else if (tab === 'results') {
                 document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
                 document.getElementById('resultsTab').classList.add('active');
                 searchContainer.classList.add('visible');
+
+                // Generate isochrone for the already selected kindergarten
+                if (currentSelectedKindergarten) {
+                    generateKindergartenIsochrone(currentSelectedKindergarten);
+                }
             }
         }
         
@@ -1076,8 +1158,11 @@
                 .setLngLat([lngLat.lng, lngLat.lat])
                 .addTo(map);
 
-            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, speed: 1, });
-            generateKindergartenIsochrone(lngLat);
+            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, });
+            // Only generate isochrone if we're in the results tab
+            if (currentTab === 'results') {
+                generateKindergartenIsochrone(lngLat);
+            }
         }
 
         function generateKindergartenIsochrone(lngLat) {
@@ -1162,199 +1247,232 @@
         }
         
         function aggregateResultsInIsochrone(isochronePolygon) {
-            const aggregated = { total: 0, age: {}, gender: {}, safety_rating: {}, economy: {}, priority: {}, grids: [] };
-            surveyDataGeoJSON.features.forEach(feature => {
-                const point = turf.point(feature.geometry.coordinates);
-                try {
-                    if (turf.booleanPointInPolygon(point, isochronePolygon)) {
-                        const props = feature.properties;
-                        aggregated.grids.push({ name: props.gridName, count: props.responses.length });
-                        props.responses.forEach(response => {
-                            aggregated.total++;
-                            if (response.age) aggregated.age[response.age] = (aggregated.age[response.age] || 0) + 1;
-                            if (response.gender) aggregated.gender[response.gender] = (aggregated.gender[response.gender] || 0) + 1;
-                            if (response.safety_rating) aggregated.safety_rating[response.safety_rating] = (aggregated.safety_rating[response.safety_rating] || 0) + 1;
-                            if (response.economy) aggregated.economy[response.economy] = (aggregated.economy[response.economy] || 0) + 1;
-                            if (response.priority) aggregated.priority[response.priority] = (aggregated.priority[response.priority] || 0) + 1;
+    const aggregated = { total: 0, age: {}, gender: {}, safety: {}, reason: {}, priority: {}, grids: [] };
+    surveyDataGeoJSON.features.forEach(feature => {
+        const point = turf.point(feature.geometry.coordinates);
+        try {
+            if (turf.booleanPointInPolygon(point, isochronePolygon)) {
+                const props = feature.properties;
+                aggregated.grids.push({ name: props.gridName, count: props.responses.length });
+                props.responses.forEach(response => {
+                    aggregated.total++;
+                    if (response.age) aggregated.age[response.age] = (aggregated.age[response.age] || 0) + 1;
+                    if (response.gender) aggregated.gender[response.gender] = (aggregated.gender[response.gender] || 0) + 1;
+                    if (response.safety) aggregated.safety[response.safety] = (aggregated.safety[response.safety] || 0) + 1;
+                    
+                    // Split reason by semicolon and count each separately
+                    if (response.reason) {
+                        const reasons = response.reason.split(';').map(r => r.trim()).filter(r => r);
+                        reasons.forEach(r => {
+                            aggregated.reason[r] = (aggregated.reason[r] || 0) + 1;
                         });
                     }
-                } catch (err) {
-                    console.error('Error checking feature:', err);
-                }
+                    
+                    // Split priority by semicolon and count each separately
+                    if (response.priority) {
+                        const priorities = response.priority.split(';').map(p => p.trim()).filter(p => p);
+                        priorities.forEach(p => {
+                            aggregated.priority[p] = (aggregated.priority[p] || 0) + 1;
+                        });
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error checking feature:', err);
+        }
+    });
+    return aggregated;
+}
+        
+function displayAggregatedResults(data) {
+    if (data.total === 0) {
+        document.getElementById('aggregateContent').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ამ არეალში მონაცემები არ არის</p>';
+        return;
+    }
+    
+    const safetyLabels = { very_unsafe: 'ძალიან სახიფათოა', somewhat_unsafe: 'მეტწილად სახიფათოა', neutral: 'საშუალო', somewhat_safe: 'მეტწილად უსაფრთხოა', very_safe: 'ძალიან უსაფრთხო' };
+    const priorityLabels = { safe_crossing: 'უსაფრთხო საფეხმავლო გადასასვლელები', enforcement: 'მკაცრი კონტროლი საგზაო მოძრაობის წესების დარღვევაზე', limit_speed: 'მაქს. დასაშვები სიჩქარის შეზღუდვა 30 კმ/სთ-მდე', infrastructure: 'ინრასტრუქტურული გაუმჯობესება (შუქნიშანი, გზის ინკლუზიური დიზაინი, და ა.შ.)', better_sidewalk: 'კეთილმოწყობილი ტროტუარები', other_priority: 'სხვა' };
+    const reasonLabels = { sidewalk: 'ვიწრო ტროტუარი', speed: 'მაღალი სიჩქარე', crossing: 'უშუქნიშნო/მოუნიშნავი გადასასვლელი', road: 'განიერი საავტომობილო ზოლი', drivers: 'მძღოლების სახიფათო მანევრი', streetlighting: 'ცუდი გარეგანათება',  other_reason: 'სხვა'};
+    const genderLabels = { male: 'კაცი', female: 'ქალი' };
+    
+    Object.values(chartInstances).forEach(chart => { try { chart.destroy(); } catch(e) {} });
+    chartInstances = {};
+    
+    let html = `<div class="aggregate-stat"><strong>სულ პასუხი:</strong> ${data.total}</div>`;
+    
+    if (Object.keys(data.gender).length > 0) html += `<div class="chart-container"><h4>სქესი</h4><div class="chart-wrapper tiny"><canvas id="genderChart"></canvas></div></div>`;
+    if (Object.keys(data.safety).length > 0) html += `<div class="chart-container"><h4>უსაფრთხოების შეფასება</h4><div class="chart-wrapper small"><canvas id="safetyChart"></canvas></div></div>`;
+    if (Object.keys(data.priority).length > 0) html += `<div class="chart-container"><h4>პრიორიტეტები</h4><div class="chart-wrapper" style="height: auto; min-height: 150px;"><div id="priorityCloud"></div></div></div>`;
+    if (Object.keys(data.reason).length > 0) html += `<div class="chart-container"><h4>სახიფათო ფაქტორები</h4><div class="chart-wrapper" style="height: auto; min-height: 150px;"><div id="reasonCloud"></div></div></div>`;
+    if (Object.keys(data.age).length > 0) html += `<div class="chart-container"><h4>ასაკი</h4><div class="chart-wrapper tiny"><canvas id="ageChart"></canvas></div></div>`;
+    
+    document.getElementById('aggregateContent').innerHTML = html;
+    setTimeout(() => createCharts(data, safetyLabels, priorityLabels, reasonLabels, genderLabels), 100);
+}
+        
+       function createCharts(data, safetyLabels, priorityLabels, reasonLabels, genderLabels) {
+    if (typeof Chart === 'undefined') return;
+    
+    const chartConfig = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 8, titleFont: { size: 11 }, bodyFont: { size: 10 }, displayColors: false }
+        }
+    };
+    
+    if (Object.keys(data.gender).length > 0) {
+        const ctx = document.getElementById('genderChart')?.getContext('2d');
+        if (ctx) {
+            chartInstances.gender = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data.gender).map(k => genderLabels[k] || k),
+                    datasets: [{ data: Object.values(data.gender), backgroundColor: ['#6c86cf', '#a8b9e3', '#e3f0fc'], borderWidth: 0 }]
+                },
+                options: { ...chartConfig, cutout: '75%' }
             });
-            return aggregated;
         }
-        
-        function displayAggregatedResults(data) {
-            if (data.total === 0) {
-                document.getElementById('aggregateContent').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ამ არეალში მონაცემები არ არის</p>';
-                return;
-            }
-            
-            const safety_ratingLabels = { very_unsafe: 'ძალიან სახიფათოა', somewhat_unsafe: 'მეტწილად სახიფათოა', neutral: 'საშუალო', somewhat_safe: 'მეტწილად უსაფრთხოა', very_safe: 'ძალიან უსაფრთხო' };
-            const priorityLabels = { economy: 'ეკონომიკა', democracy: 'დემოკრატია', eu: 'ევროინტეგრაცია', security: 'უსაფრთხოება', education: 'განათლება' };
-            const economyLabels = { very_good: 'ძალიან კარგი', good: 'კარგი', neutral: 'საშუალო', bad: 'ცუდი', very_bad: 'ძალიან ცუდი' };
-            const genderLabels = { male: 'კაცი', female: 'ქალი', other: 'სხვა' };
-            
-            Object.values(chartInstances).forEach(chart => { try { chart.destroy(); } catch(e) {} });
-            chartInstances = {};
-            
-            let html = `<div class="aggregate-stat"><strong>სულ პასუხი:</strong> ${data.total}</div>`;
-            
-            if (Object.keys(data.gender).length > 0) html += `<div class="chart-container"><h4>სქესი</h4><div class="chart-wrapper tiny"><canvas id="genderChart"></canvas></div></div>`;
-            if (Object.keys(data.safety_rating).length > 0) html += `<div class="chart-container"><h4>პარტიული გადანაწილება</h4><div class="chart-wrapper small"><canvas id="safety_ratingChart"></canvas></div></div>`;
-            if (Object.keys(data.priority).length > 0) html += `<div class="chart-container"><h4>პრიორიტეტები</h4><div class="chart-wrapper small"><canvas id="priorityChart"></canvas></div></div>`;
-            if (Object.keys(data.economy).length > 0) html += `<div class="chart-container"><h4>ეკონომიკის შეფასება</h4><div class="chart-wrapper small"><canvas id="economyChart"></canvas></div></div>`;
-            if (Object.keys(data.age).length > 0) html += `<div class="chart-container"><h4>ასაკი</h4><div class="chart-wrapper tiny"><canvas id="ageChart"></canvas></div></div>`;
-            
-            document.getElementById('aggregateContent').innerHTML = html;
-            setTimeout(() => createCharts(data, safety_ratingLabels, priorityLabels, economyLabels, genderLabels), 100);
+    }
+    
+    if (Object.keys(data.safety).length > 0) {
+        const ctx = document.getElementById('safetyChart')?.getContext('2d');
+        if (ctx) {
+            const sorted = Object.entries(data.safety).sort((a, b) => b[1] - a[1]);
+            chartInstances.safety = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(([k]) => safetyLabels[k] || k),
+                    datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#6c86cf', borderRadius: 2, borderWidth: 0 }]
+                },
+                options: { indexAxis: 'y', ...chartConfig, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
+            });
         }
-        
-        function createCharts(data, safety_ratingLabels, priorityLabels, economyLabels, genderLabels) {
-            if (typeof Chart === 'undefined') return;
-            
-            const chartConfig = {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 8, titleFont: { size: 11 }, bodyFont: { size: 10 }, displayColors: false }
-                }
-            };
-            
-            if (Object.keys(data.gender).length > 0) {
-                const ctx = document.getElementById('genderChart')?.getContext('2d');
-                if (ctx) {
-                    chartInstances.gender = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(data.gender).map(k => genderLabels[k] || k),
-                            datasets: [{ data: Object.values(data.gender), backgroundColor: ['#6c86cf', '#a8b9e3', '#e3f0fc'], borderWidth: 0 }]
-                        },
-                        options: { ...chartConfig, cutout: '75%' }
-                    });
-                }
-            }
-            
-            if (Object.keys(data.safety_rating).length > 0) {
-                const ctx = document.getElementById('safety_ratingChart')?.getContext('2d');
-                if (ctx) {
-                    const sorted = Object.entries(data.safety_rating).sort((a, b) => b[1] - a[1]);
-                    chartInstances.safety_rating = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: sorted.map(([k]) => safety_ratingLabels[k] || k),
-                            datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#6c86cf', borderRadius: 2, borderWidth: 0 }]
-                        },
-                        options: { indexAxis: 'y', ...chartConfig, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
-                    });
-                }
-            }
-            
-            if (Object.keys(data.priority).length > 0) {
-                const ctx = document.getElementById('priorityChart')?.getContext('2d');
-                if (ctx) {
-                    const sorted = Object.entries(data.priority).sort((a, b) => b[1] - a[1]);
-                    chartInstances.priority = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: sorted.map(([k]) => priorityLabels[k] || k),
-                            datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#a8b9e3', borderRadius: 2, borderWidth: 0 }]
-                        },
-                        options: { indexAxis: 'y', ...chartConfig, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
-                    });
-                }
-            }
-            
-            if (Object.keys(data.economy).length > 0) {
-                const ctx = document.getElementById('economyChart')?.getContext('2d');
-                if (ctx) {
-                    const order = ['very_good', 'good', 'neutral', 'bad', 'very_bad'];
-                    const sorted = order.filter(k => data.economy[k]).map(k => [k, data.economy[k]]);
-                    const colors = ['#4caf50', '#8bc34a', '#ffc107', '#ff9800', '#f44336'];
-                    chartInstances.economy = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: sorted.map(([k]) => economyLabels[k] || k),
-                            datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: colors.slice(0, sorted.length), borderRadius: 2, borderWidth: 0 }]
-                        },
-                        options: { indexAxis: 'y', ...chartConfig, scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
-                    });
-                }
-            }
-            
-            if (Object.keys(data.age).length > 0) {
-                const ctx = document.getElementById('ageChart')?.getContext('2d');
-                if (ctx) {
-                    const sorted = Object.entries(data.age).sort((a, b) => a[0].localeCompare(b[0]));
-                    chartInstances.age = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: sorted.map(([k]) => k),
-                            datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#c5d1f0', borderRadius: 2, borderWidth: 0 }]
-                        },
-                        options: { ...chartConfig, scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
-                    });
-                }
-            }
+    }
+    
+    // Word cloud for priorities
+    if (Object.keys(data.priority).length > 0) {
+        const container = document.getElementById('priorityCloud');
+        if (container) {
+            createWordCloud(data.priority, priorityLabels, container, ['#6c86cf', '#a8b9e3', '#5a3fc0', '#8b7fc7']);
         }
+    }
+    
+    // Word cloud for reasons
+    if (Object.keys(data.reason).length > 0) {
+        const container = document.getElementById('reasonCloud');
+        if (container) {
+            createWordCloud(data.reason, reasonLabels, container, ['#810f7c', '#e7298a', '#c51b8a', '#f768a1']);
+        }
+    }
+    
+    if (Object.keys(data.age).length > 0) {
+        const ctx = document.getElementById('ageChart')?.getContext('2d');
+        if (ctx) {
+            const sorted = Object.entries(data.age).sort((a, b) => a[0].localeCompare(b[0]));
+            chartInstances.age = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(([k]) => k),
+                    datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#c5d1f0', borderRadius: 2, borderWidth: 0 }]
+                },
+                options: { ...chartConfig, scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#666' } } } }
+            });
+        }
+    }
+}
         
         const modal = document.getElementById('modal');
         document.querySelector('.close').onclick = () => modal.style.display = 'none';
         window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
         
         document.getElementById('surveyForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const cellId = currentFeature.properties.cellId;
-            const center = getCellCenter(cellId);
-            const gridName = currentFeature.properties.gridName;
-            
-            const response = {
-                timestamp: new Date().toISOString(),
-                gridName, cellId,
-                lat: center[1],
-                lng: center[0],
-                age: formData.get('age'),
-                gender: formData.get('gender'),
-                safety_rating: formData.get('safety_rating'),
-                economy: formData.get('economy'),
-                priority: formData.get('priority')
-            };
-            
-            let feature = surveyDataGeoJSON.features.find(f => f.properties.gridName === gridName);
-            if (!feature) {
-                feature = {
-                    type: 'Feature',
-                    geometry: { type: 'Point', coordinates: center },
-                    properties: { gridName, cellId, responses: [] }
-                };
-                surveyDataGeoJSON.features.push(feature);
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const cellId = currentFeature.properties.cellId;
+    const center = getCellCenter(cellId);
+    const gridName = currentFeature.properties.gridName;
+
+    // Collect all selected reasons including "Other"
+    const reasons = Array.from(document.querySelectorAll('input[name="reason"]:checked'))
+        .map(cb => {
+            if (cb.value === 'other_reason') {
+                return document.getElementById('reasonOtherText').value || '';
             }
-            
-            feature.properties.responses.push({
-                timestamp: response.timestamp,
-                age: response.age,
-                gender: response.gender,
-                safety_rating: response.safety_rating,
-                economy: response.economy,
-                priority: response.priority
-            });
-            
-            if (map.getSource('survey-data')) map.getSource('survey-data').setData(surveyDataGeoJSON);
-            
-            try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(response) });
-            } catch (err) {
-                console.error('Failed to send to Google Sheets:', err);
+            return cb.value;
+        })
+        .filter(v => v);
+
+    // Collect all selected priorities including "Other"
+    const priorities = Array.from(document.querySelectorAll('input[name="priority"]:checked'))
+        .map(cb => {
+            if (cb.value === 'other_priority') {
+                return document.getElementById('priorityOtherText').value || '';
             }
-            
-            alert('მადლობა! თქვენი პასუხი შენახულია.');
-            modal.style.display = 'none';
-            e.target.reset();
-            updateGridLayer();
+            return cb.value;
+        })
+        .filter(v => v);
+
+    const response = {
+        timestamp: new Date().toISOString(),
+        gridName, 
+        cellId,
+        lat: center[1],
+        lng: center[0],
+        age: formData.get('age'),
+        gender: formData.get('gender'),
+        safety: formData.get('safety'),
+        reason: reasons.join('; '),
+        priority: priorities.join('; ')
+    };
+
+    // Debug: Check what's being sent
+    console.log('Response object:', response);
+    console.log('Reasons:', reasons);
+    console.log('Priorities:', priorities);
+
+    let feature = surveyDataGeoJSON.features.find(f => f.properties.gridName === gridName);
+    if (!feature) {
+        feature = {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: center },
+            properties: { gridName, cellId, responses: [] }
         };
+        surveyDataGeoJSON.features.push(feature);
+    }
+
+    feature.properties.responses.push({
+        timestamp: response.timestamp,
+        age: response.age,
+        gender: response.gender,
+        safety: response.safety,
+        reason: response.reason,
+        priority: response.priority
+    });
+
+    if (map.getSource('survey-data')) map.getSource('survey-data').setData(surveyDataGeoJSON);
+
+    try {
+        const result = await fetch(APPS_SCRIPT_URL, { 
+            method: 'POST', 
+            body: JSON.stringify(response) 
+        });
+        const resultData = await result.json();
+        console.log('Google Sheets response:', resultData);
+    } catch (err) {
+        console.error('Failed to send to Google Sheets:', err);
+    }
+
+    alert('მადლობა! თქვენი პასუხი შენახულია.');
+    modal.style.display = 'none';
+    e.target.reset();
+
+    document.getElementById('reasonOtherText').style.display = 'none';
+    document.getElementById('priorityOtherText').style.display = 'none';
+
+    updateGridLayer();
+};
         
         function updateGridLayer() {
             const bounds = map.getBounds();
@@ -1394,11 +1512,11 @@
                     currentFeature = { properties: { cellId: props.cellId, gridName, count: props.count } };
                     const center = getCellCenter(props.cellId);
                     document.getElementById('cellInfo').innerHTML = 
-                        `<div class="three-word-name">${gridName}</div>` +
-                        `<strong>Grid ID:</strong> ${props.cellId}<br>` +
-                        `<strong>ცენტრი:</strong> ${center[1].toFixed(6)}, ${center[0].toFixed(6)}<br>` +
-                        `<strong>ზომა:</strong> ~500m x 500m<br>` +
-                        `<strong>არსებული პასუხები:</strong> ${props.count}`;
+                        `<div class="three-word-name" style="text-align: center">${gridName}</div>` //+
+                        //`<strong>Grid ID:</strong> ${props.cellId}<br>` +
+                        //`<strong>ცენტრი:</strong> ${center[1].toFixed(6)}, ${center[0].toFixed(6)}<br>` +
+                        //`<strong>ზომა:</strong> ~500m x 500m<br>` +
+                        //`<strong>არსებული პასუხები:</strong> ${props.count}`;
                     modal.style.display = 'block';
                 }
             }
