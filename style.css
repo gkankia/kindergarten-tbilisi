@@ -17,10 +17,10 @@ body { font-family: 'JetBrains Mono', monospace; color: #404040; }
 .sidebar { order:0; width: 420px; overflow-y: auto; background: #f4f4f4; border-left: 1px solid #ddd; padding: 20px; }
 h1 { font-size: 5rem; text-align: center; background: transparent; margin: 0; color: rgba(255, 255, 255, 0.25); -webkit-text-stroke: 1px #6c86cf; }
 h3 { font-size: 1.25rem; font-weight: 400; padding-bottom: 20px; text-align: center; background: transparent; margin: 0; color: #8095ce; }
-.section { margin-bottom: 18px; padding: 14px; background: #f4f4f4; border-radius: 5px; }
+.section { margin-bottom: 10px; padding: 10px; background: #f4f4f4; border-radius: 5px; }
 .section h3 { font-size: 14px; margin-bottom: 10px; color: #333; }
 select, input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; }
-.toggle-group { display: flex; gap: 10px; justify-content: center; margin: 10px; }
+.toggle-group { display: flex; gap: 10px; justify-content: center; margin: 20px 0 0 0; }
 .toggle { flex: 1; padding: 10px; text-align: center; border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 13px; }
 .toggle:hover { background: #f4f4f4; color: #810f7c; box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px);}
 .toggle.active { background: rgb(21, 22, 27); color: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px);}
@@ -34,6 +34,18 @@ select, input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #d
 .radio-group input { width: auto; margin-right: 8px; }
 .checkbox-group label { display: flex; font-size: 13px; align-items: left; margin: 5px 0; font-weight: normal; line-height: 1.5rem; }
 .checkbox-group input { width: auto; margin-right: 8px; }
+.time-interval, .travel-mode {
+    background: #f4f4f4; 
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+} 
 .results { background: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 15px; }
 .info-box { border-radius: 3px; margin-bottom: 15px; font-size: 12px; line-height: 1.5; }
 .three-word-name { font-size: 16px; font-weight: bold; color: #6c86cf; margin: 5px 0; }
@@ -54,7 +66,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 .aggregate-stat { padding: 8px; margin: 5px 0; background: f4f4f4; border-radius: 3px; }
 .zaxis { display: block; position: absolute; bottom: 25px; left: 15px; z-index: 10; }
 .chart-container { background: #f4f4f4; padding: 12px; border-radius: 3px; margin-bottom: 12px; }
-.chart-container h4 { margin: 0 0 8px 0; font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.chart-container h4 { margin: 0 0 8px 0; font-size: 12px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
 .chart-wrapper { position: relative; height: 300px; margin-bottom: 5px; }
 .chart-wrapper.small { height: 200px; }
 .chart-wrapper.tiny { height: 200px; }
@@ -71,7 +83,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
     font-weight: 500;
     color: #000000;
     border: none;
-    padding: 8px 12px;
+    padding: 10px 0 0 0;
     border-radius: 4px;
     cursor: pointer;
     width: 100%;
@@ -80,7 +92,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 }   
 .dropdown-item {
     display: none;  /* hidden by default */
-    padding: 10px 12px;
+    padding: 10px;
     border: 1px solid #6c86cf;
     border-radius: 4px;
     margin-top: 5px;
