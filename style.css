@@ -3,12 +3,82 @@
 body { font-family: 'JetBrains Mono', monospace; color: #404040; }
 .map-container { display: flex; height: 100vh; flex-direction: row; }
 #map { flex: 1; order: 1; position: relative; }   
-.search-container { position: absolute;top: 10px; left: 10px; z-index: 100; width: 350px; display: block; }
+
+.search-container { 
+    position: absolute;
+    top: 10px; 
+    left: 10px; 
+    z-index: 100; 
+    width: 50px;
+    height: 50px;
+    display: block;
+    transition: width 0.3s ease;
+}
+
+.search-container.expanded {
+    width: 350px;
+}
+
 .search-container.visible { display: block; }     
-#kindergartenSearch { width: 100%; padding: 12px 16px; font-family: 'Noto Sans Georgian', sans-serif; font-size: 14px; border: 2px solid #6c86cf; border-radius: 5px; background: white;box-shadow: 0 0 10px 0 #d0e8fd; }    
-#kindergartenSearch:focus { outline: none; border-color: #810f7c; box-shadow: 0 0 10px 0 #e9d0fd; }
-.search-results { margin-top: 8px; background: white; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-height: 400px; overflow-y: auto; display: none; }
-.search-result-item { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-family: 'Noto Sans Georgian', sans-serif; font-size: 13px; }
+
+#kindergartenSearch { 
+    width: 100%;
+    height: 50px;
+    font-family: 'Material Symbols Outlined', 'Noto Sans Georgian', sans-serif;
+    font-size: 24px;
+    border: 2px solid #6c86cf; 
+    border-radius: 25px;
+    background: white;
+    box-shadow: 0 0 5px 0 #d0e8fd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+#kindergartenSearch.expanded {
+    font-family: 'Noto Sans Georgian', sans-serif;
+    font-size: 14px;
+    padding: 12px 16px; 
+    text-align: left;
+    cursor: text;
+}
+
+#kindergartenSearch::placeholder {
+    font-family: 'Material Symbols Outlined';
+    font-size: 24px;
+    color: #6c86cf;
+}
+
+#kindergartenSearch.expanded::placeholder {
+    font-family: 'Noto Sans Georgian', sans-serif;
+    font-size: 14px;
+    color: #999;
+}
+   
+#kindergartenSearch:focus { 
+    outline: none; 
+    border-color: #810f7c; 
+    box-shadow: 0 0 10px 0 #e9d0fd; 
+}
+
+.search-results { 
+    margin-top: 8px; 
+    background: white; 
+    border-radius: 5px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+    max-height: 400px; 
+    overflow-y: auto; 
+    display: none; 
+}
+
+.search-result-item { 
+    padding: 12px 16px; 
+    border-bottom: 1px solid #f0f0f0; 
+    cursor: pointer; 
+    font-family: 'Noto Sans Georgian', sans-serif; 
+    font-size: 13px; 
+}
+
 .search-result-item:hover { background: #f4f4f4; }
 .search-result-item:last-child { border-bottom: none; }
 .result-name { font-weight: bold; color: #6c86cf; margin-bottom: 4px; }
@@ -91,7 +161,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
     font-size: 14px;
 }   
 .dropdown-item {
-    display: none;  /* hidden by default */
+    display: none;
     padding: 10px;
     border: 1px solid #6c86cf;
     border-radius: 4px;
@@ -108,7 +178,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 .kindergarten-list { max-height: 400px; overflow-y: auto; }
 .kindergarten-item { padding: 10px; background: #f9f9f9; border-radius: 3px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid #810f7c; }
 .kindergarten-item.selected { background-color: #f9d2fb; border-left-color: #e63946; }
-.kindergarten-item:hover { background-color: #f768a14c; /* normal hover effect */ }
+.kindergarten-item:hover { background-color: #f768a14c; }
 .kindergarten-item h4 { color: #810f7c; margin: 0 0 6px 0; font-size: 13px; }
 .kindergarten-item p { margin: 3px 0; color: #666; }
 
@@ -120,17 +190,20 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 
 .pulsating-dot { width: 20px; height: 20px; background: #e7298a; border-radius: 50%; animation: pulse 4s infinite; }
 
-/* custom popup */
-
 #routePopup { 
     position: absolute; 
-    top: 10px; /* same vertical alignment as nav buttons */ right: 50px; /* leave space for zoom buttons */ 
-    background: rgba(58, 111, 161, 0.193); color: #fff; backdrop-filter: blur(2px); padding: 15px; border-radius: 8px;
+    top: 10px;
+    right: 50px;
+    background: rgba(58, 111, 161, 0.193); 
+    color: #fff; 
+    backdrop-filter: blur(2px); 
+    padding: 15px; 
+    border-radius: 8px;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1.25rem;
     box-shadow: 0 0 30px 0 rgba(255, 255, 255, 0.25);
     max-width: 300px;
-    z-index: 999; /* stay above the map layers */    
+    z-index: 999;
 }
 
 .accident-list { max-height: 300px; overflow-y: auto; }
@@ -142,5 +215,6 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
     .map-container { flex-direction: column; }
     .sidebar { width: 100%; border-left: none; border-top: 1px solid #ddd; height: 35vh; }
     #map { height: 65vh; }
-    .search-container { width: calc(100% - 40px); }
+    .search-container { width: 50px; }
+    .search-container.expanded { width: calc(100% - 50px); }
 }
