@@ -120,9 +120,45 @@ select, input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #d
 .info-box { border-radius: 3px; margin-bottom: 15px; font-size: 12px; line-height: 1.5; }
 .three-word-name { font-size: 16px; font-weight: bold; color: #6c86cf; margin: 5px 0; }
 .tab-buttons { display: flex; gap: 10px; justify-content: center; margin: 10px; }
-.tab-btn { font-family: JetBrains Mono, monospace; box-shadow: 0 0 20px 0 #d0e8fd; flex: 1; padding: 12px; background: #f4f4f4; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; }
+.tab-btn { font-family: JetBrains Mono, monospace; box-shadow: 0 0 20px 0 #d0e8fd; flex: 1; padding: 12px; background: #f4f4f4; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; position: relative}
 .tab-btn:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px); }
 .tab-btn.active { color: white; background: rgb(21, 22, 27); box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px); }
+.tab-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+   /* pointer-events: none;*/
+}
+
+.tab-btn.disabled:hover{
+    box-shadow: none; transform: none;
+   /* pointer-events: none;*/
+}
+
+.tab-btn.disabled:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 14px;
+    margin-bottom: 8px;
+    z-index: 1000;
+}
+.tab-btn.disabled:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(3px);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}
 button.send { width: 100%; padding: 10px; background: #f4f4f4; color: #810f7c; border: none; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px; }
 button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px) }
 .tab-content { display: none; }
@@ -136,7 +172,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 .aggregate-stat { padding: 8px; margin: 5px 0; background: f4f4f4; border-radius: 3px; }
 .zaxis { display: block; position: absolute; bottom: 25px; left: 15px; z-index: 10; }
 .chart-container { background: #f4f4f4; padding: 12px; border-radius: 3px; }
-.chart-container h4 { margin: 0 0 8px 0; font-size: 12px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.chart-container h4 { margin: 0 0 8px 0; font-size: 12px; color: #666; font-weight: 500; letter-spacing: 0.5px; }
 .chart-wrapper { position: relative; height: 300px; margin-bottom: 5px; }
 .chart-wrapper.small { height: 200px; }
 .chart-wrapper.tiny { height: 200px; }
