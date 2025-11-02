@@ -168,6 +168,17 @@
                         <div id="aggregateContent"></div>
                     </div>
                 </div>
+
+                 <!-- Urban Environment Section -->
+                 <div id="urbanEnvironmentResults" class="results streetview-section">
+                    <div class="dropdown-header" onclick="toggleDropdown('urbanEnvironmentDropdown')">
+                        <span>ურბანული გარემო</span>
+                        <span class="dropdown-arrow" id="urbanEnvironmentDropdownArrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="urbanEnvironmentDropdown">
+                        <div id="urbanEnvironmentContainer"></div>
+                    </div>
+                </div>
                 
                 <div id="kindergartenResults" class="results" style="display: none;">
                     <div class="dropdown-header" onclick="toggleDropdown('kindergartenDropdown')">
@@ -176,6 +187,17 @@
                     </div>
                     <div class="dropdown-content" id="kindergartenDropdown">
                         <div class="kindergarten-list" id="kindergartenList"></div>
+                    </div>
+                </div>
+
+                <!-- Add this after the kindergartenResults div -->
+                <div id="streetViewResults" class="results streetview-section">
+                    <div class="dropdown-header" onclick="toggleDropdown('streetViewDropdown')">
+                        <span>Street View Images (<span id="streetViewCount">0</span>)</span>
+                        <span class="dropdown-arrow" id="streetViewDropdownArrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="streetViewDropdown">
+                        <div id="streetViewContainer"></div>
                     </div>
                 </div>
 
@@ -201,6 +223,7 @@
     <script src="questionnaires.js"></script>
     <script src="load-accidents.js"></script>
     <script src="route-generation-analysis.js"></script>
+    <script src="streetview-2.js"></script> <!-- Add this line -->
 
     <script>
 
@@ -216,7 +239,11 @@
 
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw-gD_HSr3ZxM3u6gZg8W5BqmDLHacCttQ7MCSq8S8vYvk2-Wv5Kr1AZiMqylwbWOK/exec';
         
-        const GEORGIAN_WORDS = ['მზე', 'მთა', 'წყალი', 'ხე', 'ყვავილი', 'ქარი', 'ღრუბელი', 'მდინარე', 'ტბა', 'ველი', 'ტყე', 'ქვა', 'ცა', 'მიწა', 'ვარსკვლავი', 'მთვარე', 'ნისლი', 'თოვლი', 'წვიმა', 'რადიო', 'წიგნი', 'სახლი', 'გზა', 'ხიდი', 'კარი', 'ფანჯარა', 'ბაღი', 'ეზო', 'ქუჩა', 'მოედანი', 'ციხე', 'ეკლესია', 'მუზეუმი', 'პარკი', 'ბულვარი', 'სკვერი', 'ფონტანი', 'ძეგლი', 'თეატრი', 'კინო', 'ყურძენი', 'ვაშლი', 'მსხალი', 'ატამი', 'ფორთოხალი', 'ლიმონი', 'ჟოლო', 'კივი', 'ბანანი', 'საზამთრო'];
+        const GEORGIAN_WORDS = ['მზე', 'მთა', 'წყალი', 'ხე', 'ყვავილი', 'ქარი', 'ღრუბელი', 'მდინარე', 'ტბა', 'ველი', 'ტყე', 'ქვა', 'ცა', 'მიწა', 
+                                'ვარსკვლავი', 'მთვარე', 'ნისლი', 'თოვლი', 'წვიმა', 'რადიო', 'წიგნი', 'სახლი', 'გზა', 'ხიდი', 'კარი', 'ფანჯარა', 
+                                'ბაღი', 'ეზო', 'ქუჩა', 'მოედანი', 'ციხე', 'ეკლესია', 'მუზეუმი', 'პარკი', 'ბულვარი', 'სკვერი', 'შადრევანი', 'ძეგლი', 
+                                'თეატრი', 'კინო', 'ყურძენი', 'ვაშლი', 'მსხალი', 'ატამი', 'ფორთოხალი', 'ლიმონი', 'ჟოლო', 'კივი', 'ბანანი', 'საზამთრო', 
+                                'ოლიგარქია', 'კორუფცია', 'საპატრიარქო', 'ყაჩაღები', 'ავტობუსი'];
         
         function toggleDropdown(id) {
             const content = document.getElementById(id);
@@ -387,8 +414,6 @@
         // ROUTE GENERATION AND SPATIAL ANALYSIS
         // FUNCTION TO ANALYZE ACCIDENT DENSITY ALONG ROUTE SEGMENTS
 
-        
-        
         // Update the search input event listeners
         const searchInput = document.getElementById('kindergartenSearch');
         const searchContainer = document.querySelector('.search-container');
@@ -464,9 +489,18 @@
                 item.addEventListener('click', () => {
                     const lng = parseFloat(item.dataset.lng);
                     const lat = parseFloat(item.dataset.lat);
-                    zoomToKindergarten({ lng, lat });
-                    searchResults.style.display = 'none';
+                    
+                    // Set the search input value to the selected kindergarten name
                     searchInput.value = item.querySelector('.result-name').textContent;
+                    
+                    // Hide search results dropdown
+                    searchResults.style.display = 'none';
+                    
+                    // Optionally blur the input to remove focus
+                    searchInput.blur();
+                    
+                    // Then zoom to kindergarten
+                    zoomToKindergarten({ lng, lat });
                 });
             });
         });
@@ -607,6 +641,7 @@
                     } else {
                         showRouteToSelected([lng, lat], resultsMode, true);
                     }
+                    loadStreetViewForKindergarten({ lng, lat });
                 });
             });
         }
@@ -783,6 +818,9 @@
             if (currentTab === 'results') {
                 generateKindergartenIsochrone(lngLat);
             }
+
+            // When kindergarten is clicked or selected in results tab
+            loadStreetViewForKindergarten({ lng: selectedLng, lat: selectedLat });
         }
 
         function generateKindergartenIsochrone(lngLat) {
@@ -831,6 +869,8 @@
                     document.getElementById('aggregateResults').style.display = 'block';
                 })
                 .catch(err => console.error('Isochrone error:', err));
+
+                loadStreetViewForKindergarten(lngLat);
         }
 
         function generateKindergartenIsochroneWithMode(lngLat, mode) {

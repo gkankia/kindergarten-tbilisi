@@ -56,6 +56,8 @@
             if (!permanent) {
                 if (map.getLayer(routeId + '-colored')) map.removeLayer(routeId + '-colored');
                 if (map.getLayer(routeId + '-colored-outline')) map.removeLayer(routeId + '-colored-outline');
+                if (map.getLayer(routeId + '-colored-outline-glow-middle')) map.removeLayer(routeId + '-colored-outline-glow-middle');
+                if (map.getLayer(routeId + '-colored-outline-glow-outer')) map.removeLayer(routeId + '-colored-outline-glow-outer');
                 if (map.getSource(sourceId + '-segments')) map.removeSource(sourceId + '-segments');
                 if (tempRoutePopup) {
                     tempRoutePopup.remove();
@@ -97,16 +99,41 @@
                 const coloredLayerId = `${routeId}-colored`;
                 const outlineLayerId = `${routeId}-colored-outline`;
 
+                if (map.getLayer(`${outlineLayerId}-glow-outer`)) map.removeLayer(`${outlineLayerId}-glow-outer`);
+                if (map.getLayer(`${outlineLayerId}-glow-middle`)) map.removeLayer(`${outlineLayerId}-glow-middle`);
                 if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
                 if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
                 if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
 
                 map.addSource(segmentSourceId, { type: 'geojson', data: segmentCollection });
+                
+                // Outer glow layer (widest, most transparent)
                 map.addLayer({
-                    id: outlineLayerId, type: 'line', source: segmentSourceId,
+                    id: `${outlineLayerId}-glow-outer`, type: 'line', source: segmentSourceId,
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#fff', 'line-width': permanent ? 6 : 4, 'line-opacity': 0 }
+                    paint: { 
+                        'line-color': ['interpolate', ['linear'], ['get', 'weightedCount'],
+                            0, '#22c55e', 1, '#84cc16', 2, '#eab308', 4, '#f59e0b', 6, '#ef4444', 10, '#dc2626'],
+                        'line-width': permanent ? 18 : 14, 
+                        'line-opacity': 0,
+                        'line-blur': 8
+                    }
                 });
+
+                // Middle glow layer
+                map.addLayer({
+                    id: `${outlineLayerId}-glow-middle`, type: 'line', source: segmentSourceId,
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 
+                        'line-color': ['interpolate', ['linear'], ['get', 'weightedCount'],
+                            0, '#22c55e', 1, '#84cc16', 2, '#eab308', 4, '#f59e0b', 6, '#ef4444', 10, '#dc2626'],
+                        'line-width': permanent ? 12 : 10, 
+                        'line-opacity': 0,
+                        'line-blur': 4
+                    }
+                });
+
+                // Main colored line
                 map.addLayer({
                     id: coloredLayerId, type: 'line', source: segmentSourceId,
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
@@ -117,11 +144,13 @@
                     }
                 });
 
-                // Fade in route layers
+                                // Fade in route layers
                 let opacity = 0;
                 const fadeIn = () => {
                     opacity += 0.05;
                     if (opacity > 1) opacity = 1;
+                    map.setPaintProperty(`${outlineLayerId}-glow-outer`, 'line-opacity', opacity * 0.15);
+                    map.setPaintProperty(`${outlineLayerId}-glow-middle`, 'line-opacity', opacity * 0.3);
                     map.setPaintProperty(outlineLayerId, 'line-opacity', opacity * 0.8);
                     map.setPaintProperty(coloredLayerId, 'line-opacity', opacity);
                     if (opacity < 1) requestAnimationFrame(fadeIn);

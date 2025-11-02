@@ -159,6 +159,7 @@ select, input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #d
     border-top-color: #333;
     z-index: 1000;
 }
+
 button.send { width: 100%; padding: 10px; background: #f4f4f4; color: #810f7c; border: none; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px; }
 button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transform: translate(-4px, -4px) }
 .tab-content { display: none; }
@@ -169,7 +170,7 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
     display: inline-block; 
     width: 15%; height: 50px; 
     font-size: 14px; border: thin solid rgb(194, 194, 247); border-radius: 2px; box-shadow: 0 0 20px 0 #d0e8fd; text-align-last: center; padding-left: 5px; }
-.aggregate-stat { padding: 8px; margin: 5px 0; background: f4f4f4; border-radius: 3px; }
+.aggregate-stat { padding: 8px; margin: 5px 0; background: #f4f4f4; border-radius: 3px; }
 .zaxis { display: block; position: absolute; bottom: 25px; left: 15px; z-index: 10; }
 .chart-container { background: #f4f4f4; padding: 12px; border-radius: 3px; }
 .chart-container h4 { margin: 0 0 8px 0; font-size: 12px; color: #666; font-weight: 500; letter-spacing: 0.5px; }
@@ -246,6 +247,72 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 .accident-item { padding: 10px; background: #fff5f5; border-radius: 3px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid #e63946; }
 .accident-item h4 { color: #e63946; margin: 0 0 6px 0; font-size: 13px; }
 .accident-item p { margin: 3px 0; color: #666; }
+
+/* GOOGLE STREET VIEW INTEGRATION */
+
+/* Street View Images Styles */
+.streetview-section {
+    margin-top: 20px;
+    display: none;
+}
+
+.streetview-images {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.streetview-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.streetview-card:hover {
+    border-color: #6c86cf;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.streetview-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.streetview-info {
+    padding: 10px;
+}
+
+.streetview-distance {
+    font-size: 11px;
+    color: #6c86cf;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.streetview-direction {
+    font-size: 11px;
+    color: #666;
+}
+
+.loading-streetview {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 12px;
+}
+
+.no-streetview {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 12px;
+}
         
 @media (max-width: 768px) {
     .map-container { flex-direction: column; }
