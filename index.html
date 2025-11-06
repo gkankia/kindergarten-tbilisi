@@ -223,7 +223,8 @@
     <script src="questionnaires.js"></script>
     <script src="load-accidents.js"></script>
     <script src="route-generation-analysis.js"></script>
-    <script src="streetview-2.js"></script> <!-- Add this line -->
+    <script src="streetview-2.js"></script>
+    <script src="kidfriendliness.js"></script>
 
     <script>
 
@@ -415,8 +416,10 @@
         // FUNCTION TO ANALYZE ACCIDENT DENSITY ALONG ROUTE SEGMENTS
 
         // Update the search input event listeners
+        // Search functionality with expand/collapse
         const searchInput = document.getElementById('kindergartenSearch');
         const searchContainer = document.querySelector('.search-container');
+        const searchResults = document.getElementById('searchResults');
 
         // Set initial placeholder to search icon
         searchInput.placeholder = 'search';
@@ -425,20 +428,17 @@
         searchInput.addEventListener('focus', () => {
             searchContainer.classList.add('expanded');
             searchInput.classList.add('expanded');
-
-            // Change placeholder when expanded
-            searchInput.placeholder = 'მოძებნე: ბაღი, სკოლა ან მისამართი...'; // Example: "Search for a kindergarten or address"
+            searchInput.placeholder = 'მოძებნე: ბაღი, სკოლა ან მისამართი...';
         });
 
         searchInput.addEventListener('blur', () => {
             if (searchInput.value === '') {
                 searchContainer.classList.remove('expanded');
                 searchInput.classList.remove('expanded');
-
-                // Revert placeholder to minimal version
                 searchInput.placeholder = 'search';
             }
         });
+
 
         // Replace your existing searchInput.addEventListener('input', ...) with this:
         searchInput.addEventListener('input', (e) => {
@@ -569,9 +569,18 @@
 
                     // Remove previous temp route and popup only if hovering a new item
                     if (currentHoveredFeatureName && currentHoveredFeatureName !== feature.properties.name) {
-                        if (map.getLayer('temp-route-line')) {
-                            map.removeLayer('temp-route-line');
-                            map.removeSource('temp-route');
+                        // Remove temp route layers
+                        if (map.getLayer('temp-route-line-colored')) {
+                            map.removeLayer('temp-route-line-colored');
+                        }
+                        if (map.getLayer('temp-route-line-colored-outline-glow-outer')) {
+                            map.removeLayer('temp-route-line-colored-outline-glow-outer');
+                        }
+                        if (map.getLayer('temp-route-line-colored-outline-glow-middle')) {
+                            map.removeLayer('temp-route-line-colored-outline-glow-middle');
+                        }
+                        if (map.getSource('temp-route-line-segments')) {
+                            map.removeSource('temp-route-line-segments');
                         }
                         const existingPopup = document.getElementById('routePopup');
                         if (existingPopup) existingPopup.remove();
@@ -628,6 +637,7 @@
                     const lat = parseFloat(item.dataset.lat);
                     const name = item.dataset.name;
 
+                    currentHoveredFeatureName = null;
                     currentSelectedKindergarten = { lng, lat };
                     currentSelectedKindergartenName = name;
 
@@ -641,9 +651,49 @@
                     } else {
                         showRouteToSelected([lng, lat], resultsMode, true);
                     }
-                    loadStreetViewForKindergarten({ lng, lat });
+                    // Load street view for selected kindergarten
+                    if (typeof loadStreetViewForKindergarten === 'function') {
+                        loadStreetViewForKindergarten({ lng, lat });
+                    }
+
                 });
             });
+        }
+
+        function zoomToKindergarten(lngLat) {
+            if (marker) marker.remove();
+
+            currentSelectedKindergarten = { lng: lngLat.lng, lat: lngLat.lat };
+
+            // Find the clicked kindergarten by coordinates and store its name
+            if (kindergartenData && kindergartenData.features) {
+                const selected = kindergartenData.features.find(f =>
+                    f.geometry.coordinates[0] === lngLat.lng && f.geometry.coordinates[1] === lngLat.lat
+                );
+                currentSelectedKindergartenName = selected ? selected.properties.name : null;
+            }
+            
+            const pulseElement = document.createElement('div');
+            pulseElement.className = 'pulsating-dot';
+            
+            marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+                .setLngLat([lngLat.lng, lngLat.lat])
+                .addTo(map);
+
+            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, });
+            
+            // Only generate isochrone if we're in the results tab
+            if (currentTab === 'results') {
+                generateKindergartenIsochrone(lngLat);
+            }
+
+            // Load street view if function exists
+            if (typeof loadStreetViewForKindergarten === 'function') {
+                loadStreetViewForKindergarten(lngLat);
+            }
+
+            // Load playground summary
+            loadUrbanEnvironmentAnalysis(lngLat);
         }
 
         function filterPointsByIsochrone(isochronePolygon) {
@@ -792,35 +842,6 @@
             if (currentSelectedKindergarten && currentTab === 'results' && currentIsochronePolygon) {
                 generateKindergartenIsochroneWithMode(currentSelectedKindergarten, mode);
             }
-        }
-
-        function zoomToKindergarten(lngLat) {
-            if (marker) marker.remove();
-            currentSelectedKindergarten = { lng: lngLat.lng, lat: lngLat.lat };
-
-            // Find the clicked kindergarten by coordinates and store its name
-            if (kindergartenData && kindergartenData.features) {
-                const selected = kindergartenData.features.find(f =>
-                    f.geometry.coordinates[0] === lngLat.lng && f.geometry.coordinates[1] === lngLat.lat
-                );
-                currentSelectedKindergartenName = selected ? selected.properties.name : null;
-            }
-            
-            const pulseElement = document.createElement('div');
-            pulseElement.className = 'pulsating-dot';
-            
-            marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
-                .setLngLat([lngLat.lng, lngLat.lat])
-                .addTo(map);
-
-            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, });
-            // Only generate isochrone if we're in the results tab
-            if (currentTab === 'results') {
-                generateKindergartenIsochrone(lngLat);
-            }
-
-            // When kindergarten is clicked or selected in results tab
-            loadStreetViewForKindergarten({ lng: selectedLng, lat: selectedLat });
         }
 
         function generateKindergartenIsochrone(lngLat) {

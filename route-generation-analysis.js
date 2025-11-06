@@ -106,7 +106,6 @@
                 if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
 
                 map.addSource(segmentSourceId, { type: 'geojson', data: segmentCollection });
-                
                 // Outer glow layer (widest, most transparent)
                 map.addLayer({
                     id: `${outlineLayerId}-glow-outer`, type: 'line', source: segmentSourceId,

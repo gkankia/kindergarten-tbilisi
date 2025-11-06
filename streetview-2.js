@@ -1,4 +1,4 @@
-// streetview.js - Google Street View & Mapillary Integration with Rule-Based Safety Analysis
+// streetview.js - Google Street View & Mapillary Integration
 // ============================================
 // API KEYS - Replace with your keys
 // ============================================
@@ -68,23 +68,26 @@ function calculatePointAtDistance(lat, lng, distanceMeters, bearingDegrees) {
 
 /**
  * Fetch Google Street View images around a pin location
+ * Searches at specific distances: 50m, 100m, 150m, 200m, 250m
  */
 async function fetchGoogleStreetView(pinCoords) {
     try {
         console.log('Fetching Google Street View for location:', pinCoords);
         
         const searchPoints = [];
-        const numPoints = 50;
+        const distances = [50, 100, 150, 200, 250]; // Target distances in meters
+        const anglesPerDistance = 8; // 8 angles per distance (every 45 degrees)
         
-        for (let i = 0; i < numPoints; i++) {
-            const angle = Math.random() * 360;
-            const dist = 10 + Math.random() * 90;
-            
-            const point = calculatePointAtDistance(pinCoords[1], pinCoords[0], dist, angle);
-            searchPoints.push({ lat: point.lat, lng: point.lng, angle, dist });
-        }
+        // Generate search points at specific distances
+        distances.forEach(distance => {
+            for (let i = 0; i < anglesPerDistance; i++) {
+                const angle = (360 / anglesPerDistance) * i;
+                const point = calculatePointAtDistance(pinCoords[1], pinCoords[0], distance, angle);
+                searchPoints.push({ lat: point.lat, lng: point.lng, angle, dist: distance });
+            }
+        });
 
-        console.log(`Searching ${searchPoints.length} random Google Street View points`);
+        console.log(`Searching ${searchPoints.length} Google Street View points at distances: ${distances.join('m, ')}m`);
 
         const promises = searchPoints.map(async point => {
             const url = `https://maps.googleapis.com/maps/api/streetview/metadata?location=${point.lat},${point.lng}&radius=50&key=${GOOGLE_MAPS_API_KEY}`;
@@ -98,20 +101,20 @@ async function fetchGoogleStreetView(pinCoords) {
                     const panoLng = data.location.lng;
                     const distance = calculateDistance(pinCoords[1], pinCoords[0], panoLat, panoLng);
                     
-                    if (distance >= 10 && distance <= 100) {
-                        const bearing = calculateBearing(pinCoords[1], pinCoords[0], panoLat, panoLng);
-                        return {
-                            id: data.pano_id,
-                            source: 'google',
-                            distance: distance,
-                            bearing: bearing,
-                            direction: getDirection(bearing),
-                            thumbnail: `https://maps.googleapis.com/maps/api/streetview?size=640x360&location=${panoLat},${panoLng}&fov=90&key=${GOOGLE_MAPS_API_KEY}`,
-                            coordinates: [panoLng, panoLat],
-                            captured_at: data.date || null,
-                            url: `https://www.google.com/maps/@?api=1&map_action=pano&pano=${data.pano_id}`
-                        };
-                    }
+                    // Accept all distances since we're targeting specific ranges
+                    const bearing = calculateBearing(pinCoords[1], pinCoords[0], panoLat, panoLng);
+                    return {
+                        id: data.pano_id,
+                        source: 'google',
+                        distance: distance,
+                        bearing: bearing,
+                        direction: getDirection(bearing),
+                        thumbnail: `https://maps.googleapis.com/maps/api/streetview?size=640x360&location=${panoLat},${panoLng}&fov=90&key=${GOOGLE_MAPS_API_KEY}`,
+                        coordinates: [panoLng, panoLat],
+                        captured_at: data.date || null,
+                        url: `https://www.google.com/maps/@?api=1&map_action=pano&pano=${data.pano_id}`,
+                        targetDistance: point.dist // Store the target distance we searched at
+                    };
                 }
             } catch (e) {
                 console.error('Error fetching Street View point:', e);
@@ -131,7 +134,12 @@ async function fetchGoogleStreetView(pinCoords) {
             }
         }
 
-        console.log(`Google: ${uniqueImages.length} unique panoramas in 10-100m range`);
+        console.log(`Google: ${uniqueImages.length} unique panoramas found`);
+        console.log(`Distance breakdown:`, distances.map(d => {
+            const count = uniqueImages.filter(img => Math.abs(img.targetDistance - d) < 25).length;
+            return `${d}m: ${count}`;
+        }).join(', '));
+        
         return uniqueImages;
     } catch (error) {
         console.error('Error fetching Google Street View:', error);
@@ -232,246 +240,7 @@ async function fetchCombinedStreetView(pinCoords) {
 }
 
 /**
- * Fetch road data from OpenStreetMap Overpass API
- * This provides detailed information about roads near the kindergarten
- */
-async function fetchNearbyRoads(lat, lng, radiusMeters = 100) {
-    try {
-        const query = `
-            [out:json];
-            (
-                way["highway"](around:${radiusMeters},${lat},${lng});
-            );
-            out body;
-            >;
-            out skel qt;
-        `;
-        
-        const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        return data.elements || [];
-    } catch (error) {
-        console.error('Error fetching OSM data:', error);
-        return [];
-    }
-}
-
-/**
- * Analyze road safety based on OpenStreetMap data
- * This is completely free and uses open data
- */
-function analyzeRoadSafety(osmElements, pinCoords) {
-    const analysis = {
-        roads: [],
-        features: {
-            hasTrafficLights: false,
-            hasCrosswalk: false,
-            hasSpeedBump: false,
-            hasSidewalk: false,
-            hasStreetLight: false,
-            hasCycleway: false
-        },
-        risks: [],
-        positives: []
-    };
-    
-    // Analyze each road element
-    osmElements.forEach(element => {
-        if (element.type === 'way' && element.tags) {
-            const tags = element.tags;
-            const highway = tags.highway;
-            
-            if (highway) {
-                const roadInfo = {
-                    type: highway,
-                    name: tags.name || 'უსახელო გზა',
-                    maxspeed: tags.maxspeed,
-                    lanes: tags.lanes,
-                    surface: tags.surface,
-                    sidewalk: tags.sidewalk,
-                    cycleway: tags.cycleway,
-                    lit: tags.lit
-                };
-                
-                analysis.roads.push(roadInfo);
-                
-                // Check for positive features
-                if (tags.sidewalk && tags.sidewalk !== 'no') {
-                    analysis.features.hasSidewalk = true;
-                }
-                if (tags.cycleway) {
-                    analysis.features.hasCycleway = true;
-                }
-                if (tags.lit === 'yes') {
-                    analysis.features.hasStreetLight = true;
-                }
-                if (tags.crossing || highway === 'crossing') {
-                    analysis.features.hasCrosswalk = true;
-                }
-                if (highway === 'traffic_signals') {
-                    analysis.features.hasTrafficLights = true;
-                }
-                if (tags.traffic_calming === 'bump' || tags.traffic_calming === 'hump') {
-                    analysis.features.hasSpeedBump = true;
-                }
-                
-                // Identify risks
-                const majorRoadTypes = ['motorway', 'trunk', 'primary', 'secondary'];
-                if (majorRoadTypes.includes(highway)) {
-                    analysis.risks.push({
-                        type: 'major_road',
-                        severity: 'high',
-                        description: `დიდი გზა (${highway}) ახლოს არის`
-                    });
-                }
-                
-                if (tags.maxspeed) {
-                    const speed = parseInt(tags.maxspeed);
-                    if (speed > 50) {
-                        analysis.risks.push({
-                            type: 'high_speed',
-                            severity: 'high',
-                            description: `მაღალი სიჩქარის ზონა (${speed} კმ/სთ)`
-                        });
-                    }
-                }
-                
-                if (tags.lanes && parseInt(tags.lanes) >= 4) {
-                    analysis.risks.push({
-                        type: 'multi_lane',
-                        severity: 'medium',
-                        description: `ფართო გზა (${tags.lanes} ზოლი)`
-                    });
-                }
-                
-                if (!tags.sidewalk || tags.sidewalk === 'no') {
-                    analysis.risks.push({
-                        type: 'no_sidewalk',
-                        severity: 'high',
-                        description: 'ტროტუარი არ არის'
-                    });
-                }
-            }
-        }
-    });
-    
-    // Add positive features
-    if (analysis.features.hasSidewalk) {
-        analysis.positives.push('✅ ტროტუარი არსებობს');
-    }
-    if (analysis.features.hasCrosswalk) {
-        analysis.positives.push('✅ გზის გადასასვლელი არის');
-    }
-    if (analysis.features.hasTrafficLights) {
-        analysis.positives.push('✅ შუქნიშანი არსებობს');
-    }
-    if (analysis.features.hasSpeedBump) {
-        analysis.positives.push('✅ სიჩქარის შემამცირებელი უზრუნველყოფილია');
-    }
-    if (analysis.features.hasStreetLight) {
-        analysis.positives.push('✅ ქუჩის განათება კარგია');
-    }
-    if (analysis.features.hasCycleway) {
-        analysis.positives.push('✅ ველოსიპედის ბილიკი არსებობს');
-    }
-    
-    return analysis;
-}
-
-/**
- * Generate safety summary in Georgian - narrative style
- */
-function generateSafetySummary(analysis) {
-    let summary = '';
-    
-    // Overall assessment
-    const highRisks = analysis.risks.filter(r => r.severity === 'high').length;
-    const mediumRisks = analysis.risks.filter(r => r.severity === 'medium').length;
-    const hasPositives = analysis.positives.length > 0;
-    
-    // Opening paragraph - overall assessment
-    if (highRisks > 2) {
-        summary += 'ამ საბავშვო ბაგის გარემო საკმაოდ პრობლემურია ბავშვთა უსაფრთხოების თვალსაზრისით. გარშემო არის მნიშვნელოვანი საფრთხეები, რომლებიც საჭიროებს სერიოზულ ყურადღებას. ';
-    } else if (highRisks > 0) {
-        summary += 'ბაგის მიმდებარე ტერიტორიაზე შეინიშნება გარკვეული უსაფრთხოების საკითხები, რომლებზეც ყურადღება უნდა მიექცეს. ';
-    } else {
-        summary += 'ბაგის გარშემო გარემო ზოგადად უსაფრთხოდ შეიძლება ჩაითვალოს ბავშვებისთვის. ';
-    }
-    
-    // Describe positive features in natural language
-    if (hasPositives) {
-        const features = [];
-        if (analysis.features.hasSidewalk) features.push('ტროტუარებია');
-        if (analysis.features.hasCrosswalk) features.push('გზის გადასასვლელები');
-        if (analysis.features.hasTrafficLights) features.push('შუქნიშნები');
-        if (analysis.features.hasSpeedBump) features.push('სიჩქარის შემამცირებლები');
-        if (analysis.features.hasStreetLight) features.push('სანათი ფარები');
-        if (analysis.features.hasCycleway) features.push('ველოსიპედის ბილიკები');
-        
-        if (features.length > 0) {
-            summary += 'დადებითი მხარე ისაა, რომ ტერიტორიაზე ';
-            if (features.length === 1) {
-                summary += `${features[0]} მოეწყობა. `;
-            } else if (features.length === 2) {
-                summary += `${features[0]} და ${features[1]} მოეწყობა. `;
-            } else {
-                const lastFeature = features.pop();
-                summary += `${features.join(', ')} და ${lastFeature} მოეწყობა. `;
-            }
-        }
-    }
-    
-    // Describe risks in narrative form
-    if (analysis.risks.length > 0) {
-        summary += '\n\n';
-        const uniqueRisks = [...new Map(analysis.risks.map(r => [r.description, r])).values()];
-        const majorRoads = uniqueRisks.filter(r => r.type === 'major_road');
-        const highSpeed = uniqueRisks.filter(r => r.type === 'high_speed');
-        const multiLane = uniqueRisks.filter(r => r.type === 'multi_lane');
-        const noSidewalk = uniqueRisks.filter(r => r.type === 'no_sidewalk');
-        
-        if (majorRoads.length > 0 || highSpeed.length > 0) {
-            summary += 'მთავარი საფრთხე ინტენსიური ტრაფიკია. ';
-            if (majorRoads.length > 0) {
-                summary += 'ბაგის სიახლოვეს გადის დიდი სატრანსპორტო მაგისტრალი, ';
-            }
-            if (highSpeed.length > 0) {
-                summary += 'სადაც სიჩქარის ლიმიტი საკმაოდ მაღალია. ';
-            }
-        }
-        
-        if (multiLane.length > 0) {
-            summary += 'გზა ფართოა, რამდენიმე ზოლიანი, რაც ბავშვისთვის გადაკვეთას ართულებს. ';
-        }
-        
-        if (noSidewalk.length > 0) {
-            summary += 'განსაკუთრებით პრობლემურია ის, რომ გარკვეულ მონაკვეთებზე ტროტუარები საერთოდ არ არის, რაც ბავშვებს აიძულებს საგზაო ნაწილზე სიარულს. ';
-        }
-    }
-    
-    // Recommendations in natural language
-    summary += '\n\n';
-    if (highRisks > 0) {
-        summary += 'ამ პირობებში აუცილებელია, რომ ბავშვები მუდმივ ზედამხედველობაში იყვნენ. ';
-        summary += 'გზის გადაკვეთისას განსაკუთრებული სიფრთხილეა საჭირო და სასურველია მხოლოდ გამორჩეულ გადასასვლელებზე გადასვლა. ';
-        
-        if (!analysis.features.hasSidewalk) {
-            summary += 'მშობლებმა და ადმინისტრაციამ უნდა მოითხოვონ შესაბამისი უწყებებიდან ტროტუარის მოწყობა. ';
-        }
-        if (!analysis.features.hasTrafficLights) {
-            summary += 'აგრეთვე სასურველია შუქნიშნების დამონტაჟება ბაგის სიახლოვეს, რაც უსაფრთხოების დონეს მნიშვნელოვნად გაზრდის. ';
-        }
-    } else {
-        summary += 'მიუხედავად შედარებით უსაფრთხო გარემოსა, ბავშვებს მაინც სჭირდებათ ზედამხედველობა ქუჩაში გადაადგილებისას. ';
-    }
-    
-    return summary;
-}
-
-/**
- * Display street view images in the sidebar (without safety analysis)
+ * Display street view images in the sidebar
  */
 function displayStreetViewImages(images) {
     const container = document.getElementById('streetViewContainer');
@@ -513,41 +282,7 @@ function displayStreetViewImages(images) {
 }
 
 /**
- * Display urban environment safety analysis in a separate section
- */
-function displayUrbanEnvironmentAnalysis(safetyAnalysis) {
-    const container = document.getElementById('urbanEnvironmentContainer');
-    
-    if (!container) {
-        console.error('Urban environment container not found');
-        return;
-    }
-    
-    if (!safetyAnalysis || !safetyAnalysis.summary) {
-        container.innerHTML = '<div style="padding: 16px; color: #666;">უსაფრთხოების ანალიზი არ არის ხელმისაწვდომი</div>';
-        return;
-    }
-    
-    container.innerHTML = `
-        <div style="background: #f4f4f4); 
-                    color: #666666; 
-                    padding: 20px; 
-                    border-radius: 12px; 
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        
-            <div style="font-size: 14px; line-height: 1.8; white-space: pre-wrap;">${safetyAnalysis.summary}</div>
-        </div>`;
-    
-    // Update the count in the dropdown header if it exists
-    const countElement = document.getElementById('urbanEnvironmentCount');
-    if (countElement) {
-        countElement.textContent = '1';
-    }
-}
-
-/**
- * Load and display street view images with FREE safety analysis for a kindergarten location
- * Uses OpenStreetMap data - completely free!
+ * Load and display street view images for a kindergarten location
  */
 async function loadStreetViewForKindergarten(lngLat) {
     // Show the street view section
@@ -562,43 +297,16 @@ async function loadStreetViewForKindergarten(lngLat) {
             </div>
         </div>`;
     
-    // Show urban environment section and loading state
-    const urbanEnvSection = document.getElementById('urbanEnvironmentResults');
-    if (urbanEnvSection) {
-        urbanEnvSection.style.display = 'block';
-        const urbanEnvContainer = document.getElementById('urbanEnvironmentContainer');
-        if (urbanEnvContainer) {
-            urbanEnvContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
-                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">მიმდინარეობს უსაფრთხოების ანალიზი...</div>
-                    <div style="font-size: 14px; color: #666;">OpenStreetMap მონაცემების დამუშავება</div>
-                </div>`;
-        }
-    }
-    
-    // Fetch both images and OSM data in parallel
-    const [images, osmElements] = await Promise.all([
-        fetchCombinedStreetView([lngLat.lng, lngLat.lat]),
-        fetchNearbyRoads(lngLat.lat, lngLat.lng, 100)
-    ]);
+    // Fetch images
+    const images = await fetchCombinedStreetView([lngLat.lng, lngLat.lat]);
     
     // Sort and select the 5 closest images
     const selectedImages = images
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 5);
     
-    // Display street view images (without analysis)
+    // Display street view images
     displayStreetViewImages(selectedImages);
-    
-    // Analyze road safety based on OSM data
-    const analysis = analyzeRoadSafety(osmElements, [lngLat.lng, lngLat.lat]);
-    const summary = generateSafetySummary(analysis);
-    
-    // Display urban environment analysis in separate section
-    displayUrbanEnvironmentAnalysis({
-        summary: summary
-    });
 }
 
 // Export functions
@@ -608,11 +316,7 @@ if (typeof module !== 'undefined' && module.exports) {
         fetchMapillaryImages,
         fetchCombinedStreetView,
         displayStreetViewImages,
-        displayUrbanEnvironmentAnalysis,
         loadStreetViewForKindergarten,
-        fetchNearbyRoads,
-        analyzeRoadSafety,
-        generateSafetySummary,
         calculateDistance,
         calculateBearing,
         getDirection,
