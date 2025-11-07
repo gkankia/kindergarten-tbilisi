@@ -225,6 +225,7 @@
     <script src="route-generation-analysis.js"></script>
     <script src="streetview-2.js"></script>
     <script src="kidfriendliness.js"></script>
+    <script src="draggable-divider.js"></script>
 
     <script>
 
@@ -416,516 +417,869 @@
         // FUNCTION TO ANALYZE ACCIDENT DENSITY ALONG ROUTE SEGMENTS
 
         // Update the search input event listeners
-        // Search functionality with expand/collapse
-        const searchInput = document.getElementById('kindergartenSearch');
-        const searchContainer = document.querySelector('.search-container');
-        const searchResults = document.getElementById('searchResults');
+        // ============================================================
+// ============================================================
+// INTEGRATED SEARCH AND FACILITY MANAGEMENT
+// Supports both Kindergartens and Schools
+// ============================================================
 
-        // Set initial placeholder to search icon
+// Track current facility type
+let currentFacilityType = null; // 'kindergarten' or 'school'
+
+// Load public school data
+let publicSchoolData = null;
+
+async function loadPublicSchoolData() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/axis-Z/urbanyxv1/main/data/public_schools.geojson');
+        if (!response.ok) throw new Error('Network response was not ok');
+        publicSchoolData = await response.json();
+        console.log('Public school data loaded:', publicSchoolData.features.length, 'schools');
+    } catch (err) {
+        console.error('Failed to load public school data:', err);
+    }
+}
+
+// Call this on page load
+loadPublicSchoolData();
+
+// Search functionality with expand/collapse
+const searchInput = document.getElementById('kindergartenSearch');
+const searchContainer = document.querySelector('.search-container');
+const searchResults = document.getElementById('searchResults');
+
+// Set initial placeholder to search icon
+searchInput.placeholder = 'search';
+
+// Add expand/collapse functionality
+searchInput.addEventListener('focus', () => {
+    searchContainer.classList.add('expanded');
+    searchInput.classList.add('expanded');
+    searchInput.placeholder = 'მოძებნე: ბაღი, სკოლა ან მისამართი...';
+});
+
+searchInput.addEventListener('blur', () => {
+    if (searchInput.value === '') {
+        searchContainer.classList.remove('expanded');
+        searchInput.classList.remove('expanded');
         searchInput.placeholder = 'search';
+    }
+});
 
-        // Add expand/collapse functionality
-        searchInput.addEventListener('focus', () => {
-            searchContainer.classList.add('expanded');
-            searchInput.classList.add('expanded');
-            searchInput.placeholder = 'მოძებნე: ბაღი, სკოლა ან მისამართი...';
-        });
+// Search input handler - searches both kindergartens and schools
+searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    
+    if (query.length > 0) {
+        searchContainer.classList.add('expanded');
+        searchInput.classList.add('expanded');
+    }
+    
+    if (query.length < 1) {
+        searchResults.style.display = 'none';
+        return;
+    }
 
-        searchInput.addEventListener('blur', () => {
-            if (searchInput.value === '') {
-                searchContainer.classList.remove('expanded');
-                searchInput.classList.remove('expanded');
-                searchInput.placeholder = 'search';
-            }
-        });
+    const bounds = map.getBounds();
+    const minLng = bounds.getWest();
+    const maxLng = bounds.getEast();
+    const minLat = bounds.getSouth();
+    const maxLat = bounds.getNorth();
 
+    let allMatches = [];
 
-        // Replace your existing searchInput.addEventListener('input', ...) with this:
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim().toLowerCase();
-            
-            // Keep expanded if there's text
-            if (query.length > 0) {
-                searchContainer.classList.add('expanded');
-                searchInput.classList.add('expanded');
-            }
-            
-            if (query.length < 1 || !kindergartenData) {
-                searchResults.style.display = 'none';
-                return;
-            }
+    // Search kindergartens
+    if (kindergartenData && kindergartenData.features) {
+        const kindergartenMatches = kindergartenData.features.filter(f => {
+            const [lng, lat] = f.geometry.coordinates;
+            const inBounds = lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+            const name = (f.properties.name || '').toLowerCase();
+            const location = (f.properties.name_location || '').toLowerCase();
+            const matchesQuery = name.includes(query) || location.includes(query);
+            return inBounds && matchesQuery;
+        }).map(f => ({
+            type: 'kindergarten',
+            name: f.properties.name,
+            address: f.properties.name_location,
+            phone: f.properties.phone || '',
+            lng: f.geometry.coordinates[0],
+            lat: f.geometry.coordinates[1]
+        }));
+        allMatches.push(...kindergartenMatches);
+    }
 
-            const bounds = map.getBounds();
-            const minLng = bounds.getWest();
-            const maxLng = bounds.getEast();
-            const minLat = bounds.getSouth();
-            const maxLat = bounds.getNorth();
+    // Search schools
+    if (publicSchoolData && publicSchoolData.features) {
+        const schoolMatches = publicSchoolData.features.filter(f => {
+            const [lng, lat] = f.geometry.coordinates;
+            const inBounds = lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+            const name = (f.properties.სკოლა || '').toLowerCase();
+            const matchesQuery = name.includes(query);
+            return inBounds && matchesQuery;
+        }).map(f => ({
+            type: 'school',
+            name: f.properties.სკოლა,
+            students: f.properties.students || 0,
+            occupancy: f.properties.occupancy || 0,
+            lng: f.geometry.coordinates[0],
+            lat: f.geometry.coordinates[1]
+        }));
+        allMatches.push(...schoolMatches);
+    }
 
-            const matches = kindergartenData.features.filter(f => {
-                const [lng, lat] = f.geometry.coordinates;
-                const inBounds = lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
-                const name = (f.properties.name || '').toLowerCase();
-                const location = (f.properties.name_location || '').toLowerCase();
-                const matchesQuery = name.includes(query) || location.includes(query);
-                return inBounds && matchesQuery;
-            }).slice(0, 10);
+    allMatches = allMatches.slice(0, 10);
 
-            if (matches.length === 0) {
-                searchResults.style.display = 'none';
-                return;
-            }
+    if (allMatches.length === 0) {
+        searchResults.style.display = 'none';
+        return;
+    }
 
-            searchResults.innerHTML = matches.map(f => `
-                <div class="search-result-item" data-lng="${f.geometry.coordinates[0]}" data-lat="${f.geometry.coordinates[1]}">
-                    <div class="result-name">${f.properties.name}</div>
-                    <div class="result-address">${f.properties.name_location}</div>
-                    <div class="result-phone">${f.properties.phone || ''}</div>
+    searchResults.innerHTML = allMatches.map(item => {
+        if (item.type === 'kindergarten') {
+            return `
+                <div class="search-result-item" data-type="kindergarten" data-lng="${item.lng}" data-lat="${item.lat}">
+                    <div class="result-name">🎒 ${item.name}</div>
+                    <div class="result-address">${item.address}</div>
+                    ${item.phone ? `<div class="result-phone">${item.phone}</div>` : ''}
                 </div>
-            `).join('');
+            `;
+        } else {
+            return `
+                <div class="search-result-item" data-type="school" data-lng="${item.lng}" data-lat="${item.lat}">
+                    <div class="result-name">🏫 ${item.name}</div>
+                    <div class="result-address" style="font-size: 11px;">სკოლა • მოსწავლეები: ${item.students} • დატვირთულობა: ${item.occupancy}%</div>
+                </div>
+            `;
+        }
+    }).join('');
 
-            searchResults.style.display = 'block';
+    searchResults.style.display = 'block';
 
-            searchResults.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const lng = parseFloat(item.dataset.lng);
-                    const lat = parseFloat(item.dataset.lat);
-                    
-                    // Set the search input value to the selected kindergarten name
-                    searchInput.value = item.querySelector('.result-name').textContent;
-                    
-                    // Hide search results dropdown
-                    searchResults.style.display = 'none';
-                    
-                    // Optionally blur the input to remove focus
-                    searchInput.blur();
-                    
-                    // Then zoom to kindergarten
-                    zoomToKindergarten({ lng, lat });
-                });
-            });
+    searchResults.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const lng = parseFloat(item.dataset.lng);
+            const lat = parseFloat(item.dataset.lat);
+            const type = item.dataset.type;
+            
+            searchInput.value = item.querySelector('.result-name').textContent.replace('🎒 ', '').replace('🏫 ', '');
+            searchResults.style.display = 'none';
+            searchInput.blur();
+            
+            currentFacilityType = type;
+            
+            if (type === 'kindergarten') {
+                zoomToKindergarten({ lng, lat });
+            } else if (type === 'school') {
+                zoomToSchool({ lng, lat });
+            }
+        });
+    });
+});
+
+// Close search results when clicking outside
+document.addEventListener('click', (e) => {
+    if (!searchContainer.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+        if (searchInput.value === '') {
+            searchContainer.classList.remove('expanded');
+            searchInput.classList.remove('expanded');
+            searchInput.placeholder = 'search';
+        }
+    }
+});
+
+function displayKindergartenList(pointsInIsochrone) {
+    const list = document.getElementById('kindergartenList');
+    const count = document.getElementById('kindergartenCount');
+    count.textContent = pointsInIsochrone.length;
+
+    if (pointsInIsochrone.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ბაგა-ბაღები არ მოიძებნა</p>';
+        return;
+    }
+
+    // Sort selected kindergarten first, rest by distance
+    if (currentSelectedKindergarten && currentSelectedKindergartenName) {
+        const [selLng, selLat] = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
+        pointsInIsochrone.sort((a, b) => {
+            if (a.properties.name === currentSelectedKindergartenName) return -1;
+            if (b.properties.name === currentSelectedKindergartenName) return 1;
+            const distA = turf.distance(turf.point([selLng, selLat]), turf.point(a.geometry.coordinates));
+            const distB = turf.distance(turf.point([selLng, selLat]), turf.point(b.geometry.coordinates));
+            return distA - distB;
+        });
+    }
+
+    // Render list
+    list.innerHTML = pointsInIsochrone.map(feature => {
+        const props = feature.properties;
+        const isSelected = props.name === currentSelectedKindergartenName;
+        let html = `<div class="kindergarten-item${isSelected ? ' selected' : ''}" 
+                    data-lng="${feature.geometry.coordinates[0]}" 
+                    data-lat="${feature.geometry.coordinates[1]}" 
+                    data-name="${props.name || ''}">`;
+
+        if (props.image && props.image !== 'null' && props.image !== '') {
+            html += `<img src="${props.image}" style="width:100%; height:150px; object-fit:cover; border-radius:5px; margin-bottom:10px;" onerror="this.style.display='none'">`;
+        }
+
+        html += `<h4>${props.name || 'უსახელო'}</h4>`;
+        if (props.location) html += `<p>📍 ${props.location}</p>`;
+        if (props.phone && props.phone !== 'null' && props.phone !== '') html += `<p>📞 ${props.phone}</p>`;
+        if (props.email && props.email !== 'null' && props.email !== '') html += `<p>✉️ ${props.email}</p>`;
+        if (props.facebook && props.facebook !== 'null' && props.facebook !== '') {
+            html += `<p>👥 <a href="${props.facebook}" target="_blank" style="color:#6c86cf; text-decoration:none;">Facebook</a></p>`;
+        }
+
+        html += '</div>';
+        return html;
+    }).join('');
+
+    let currentHoveredFeatureName = null;
+
+    // Add hover & click behavior
+    pointsInIsochrone.forEach((feature, index) => {
+        const item = list.children[index];
+        if (!item) return;
+
+        const featureLngLat = feature.geometry.coordinates;
+        const isSelected = feature.properties.name === currentSelectedKindergartenName;
+
+        item.addEventListener('mouseenter', () => {
+            if (isSelected) return;
+            if (!map.getLayer('isochrone-points-layer')) return;
+
+            if (currentHoveredFeatureName && currentHoveredFeatureName !== feature.properties.name) {
+                if (map.getLayer('temp-route-line-colored')) map.removeLayer('temp-route-line-colored');
+                if (map.getLayer('temp-route-line-colored-outline-glow-outer')) map.removeLayer('temp-route-line-colored-outline-glow-outer');
+                if (map.getLayer('temp-route-line-colored-outline-glow-middle')) map.removeLayer('temp-route-line-colored-outline-glow-middle');
+                if (map.getSource('temp-route-line-segments')) map.removeSource('temp-route-line-segments');
+                const existingPopup = document.getElementById('routePopup');
+                if (existingPopup) existingPopup.remove();
+            }
+
+            currentHoveredFeatureName = feature.properties.name;
+
+            map.setPaintProperty('isochrone-points-layer', 'circle-radius', [
+                'case', ['==', ['get', 'name'], feature.properties.name], 8, 4
+            ]);
+            map.setPaintProperty('isochrone-points-layer', 'circle-color', [
+                'case', ['==', ['get', 'name'], feature.properties.name], '#f768a1', '#ae017e'
+            ]);
+
+            let from;
+            if (userLocation) {
+                from = userLocation;
+            } else if (currentSelectedKindergarten) {
+                from = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
+            } else {
+                return;
+            }
+
+            showRoute(from, featureLngLat, resultsMode, false);
         });
 
-        function displayKindergartenList(pointsInIsochrone) {
-            const list = document.getElementById('kindergartenList');
-            const count = document.getElementById('kindergartenCount');
-            count.textContent = pointsInIsochrone.length;
+        item.addEventListener('click', () => {
+            const lng = parseFloat(item.dataset.lng);
+            const lat = parseFloat(item.dataset.lat);
+            const name = item.dataset.name;
 
-            if (pointsInIsochrone.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ბაგა-ბაღები არ მოიძებნა</p>';
-                return;
-            }
+            currentHoveredFeatureName = null;
+            currentSelectedKindergarten = { lng, lat };
+            currentSelectedKindergartenName = name;
 
-            // ---- Sort selected kindergarten first, rest by distance ----
-            if (currentSelectedKindergarten && currentSelectedKindergartenName) {
-                const [selLng, selLat] = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
-                pointsInIsochrone.sort((a, b) => {
-                    if (a.properties.name === currentSelectedKindergartenName) return -1;
-                    if (b.properties.name === currentSelectedKindergartenName) return 1;
-                    const distA = turf.distance(turf.point([selLng, selLat]), turf.point(a.geometry.coordinates));
-                    const distB = turf.distance(turf.point([selLng, selLat]), turf.point(b.geometry.coordinates));
-                    return distA - distB;
-                });
-            }
-
-            // ---- Render list ----
-            list.innerHTML = pointsInIsochrone.map(feature => {
-                const props = feature.properties;
-                const isSelected = props.name === currentSelectedKindergartenName;
-                let html = `<div class="kindergarten-item${isSelected ? ' selected' : ''}" 
-                            data-lng="${feature.geometry.coordinates[0]}" 
-                            data-lat="${feature.geometry.coordinates[1]}" 
-                            data-name="${props.name || ''}">`;
-
-                if (props.image && props.image !== 'null' && props.image !== '') {
-                    html += `<img src="${props.image}" style="width:100%; height:150px; object-fit:cover; border-radius:5px; margin-bottom:10px;" onerror="this.style.display='none'">`;
-                }
-
-                html += `<h4>${props.name || 'უსახელო'}</h4>`;
-                if (props.location) html += `<p>📍 ${props.location}</p>`;
-                if (props.phone && props.phone !== 'null' && props.phone !== '') html += `<p>📞 ${props.phone}</p>`;
-                if (props.email && props.email !== 'null' && props.email !== '') html += `<p>✉️ ${props.email}</p>`;
-                if (props.facebook && props.facebook !== 'null' && props.facebook !== '') {
-                    html += `<p>👥 <a href="${props.facebook}" target="_blank" style="color:#6c86cf; text-decoration:none;">Facebook</a></p>`;
-                }
-
-                html += '</div>';
-                return html;
-            }).join('');
-
-            let currentHoveredFeatureName = null; // track which item is currently hovered
-
-            // ---- Add hover & click behavior ----
-            pointsInIsochrone.forEach((feature, index) => {
-                const item = list.children[index];
-                if (!item) return;
-
-                const featureLngLat = feature.geometry.coordinates;
-                const isSelected = feature.properties.name === currentSelectedKindergartenName;
-
-                // Hover: animate point and show temporary route
-                item.addEventListener('mouseenter', () => {
-                    if (isSelected) return; // <-- skip popup if hovering selected item
-                    if (!map.getLayer('isochrone-points-layer')) return;
-
-                    // Remove previous temp route and popup only if hovering a new item
-                    if (currentHoveredFeatureName && currentHoveredFeatureName !== feature.properties.name) {
-                        // Remove temp route layers
-                        if (map.getLayer('temp-route-line-colored')) {
-                            map.removeLayer('temp-route-line-colored');
-                        }
-                        if (map.getLayer('temp-route-line-colored-outline-glow-outer')) {
-                            map.removeLayer('temp-route-line-colored-outline-glow-outer');
-                        }
-                        if (map.getLayer('temp-route-line-colored-outline-glow-middle')) {
-                            map.removeLayer('temp-route-line-colored-outline-glow-middle');
-                        }
-                        if (map.getSource('temp-route-line-segments')) {
-                            map.removeSource('temp-route-line-segments');
-                        }
-                        const existingPopup = document.getElementById('routePopup');
-                        if (existingPopup) existingPopup.remove();
-                    }
-
-                    currentHoveredFeatureName = feature.properties.name;
-
-                    // Smooth circle animation
-                    map.setPaintProperty('isochrone-points-layer', 'circle-radius', [
-                        'case', ['==', ['get', 'name'], feature.properties.name], 8, 4
-                    ]);
-                    map.setPaintProperty('isochrone-points-layer', 'circle-color', [
-                        'case', ['==', ['get', 'name'], feature.properties.name], '#f768a1', '#ae017e'
-                    ]);
-
-                    // Determine route start point:
-                    let from;
-                    if (userLocation) {
-                        // User has pressed the geolocate button
-                        from = userLocation;
-                    } else if (currentSelectedKindergarten) {
-                        from = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
-                    } else {
-                        return; // no valid starting point
-                    }
-
-                    // Show temporary route
-                    showRoute(from, featureLngLat, resultsMode, false);
-                });
-
-                //item.addEventListener('mouseleave', () => {
-                    // Reset visuals
-                  //  if (!map.getLayer('isochrone-points-layer')) return;
-
-                  //  map.setPaintProperty('isochrone-points-layer', 'circle-radius', 4);
-                  //  map.setPaintProperty('isochrone-points-layer', 'circle-color', '#ae017e');
-
-                    // Remove route & popup
-                  //  if (map.getLayer('temp-route-line')) {
-                  //      map.removeLayer('temp-route-line');
-                  //      map.removeSource('temp-route');
-                    //}
-                    
-                    // Remove custom popup div if it exists
-                   // const existingPopup = document.getElementById('routePopup');
-                   // if (existingPopup) {
-                     //   existingPopup.remove();
-                  //  }
-                //});
-
-                // Click: zoom, select, and show permanent route
-                item.addEventListener('click', () => {
-                    const lng = parseFloat(item.dataset.lng);
-                    const lat = parseFloat(item.dataset.lat);
-                    const name = item.dataset.name;
-
-                    currentHoveredFeatureName = null;
-                    currentSelectedKindergarten = { lng, lat };
-                    currentSelectedKindergartenName = name;
-
-                    // Re-render list
-                    displayKindergartenList(pointsInIsochrone);
-                    zoomToKindergarten({ lng, lat });
-
-                    // If geolocation active, use user location
-                    if (userLocation) {
-                        showRoute(userLocation, [lng, lat], resultsMode, true);
-                    } else {
-                        showRouteToSelected([lng, lat], resultsMode, true);
-                    }
-                    // Load street view for selected kindergarten
-                    if (typeof loadStreetViewForKindergarten === 'function') {
-                        loadStreetViewForKindergarten({ lng, lat });
-                    }
-
-                });
-            });
-        }
-
-        function zoomToKindergarten(lngLat) {
-            if (marker) marker.remove();
-
-            currentSelectedKindergarten = { lng: lngLat.lng, lat: lngLat.lat };
-
-            // Find the clicked kindergarten by coordinates and store its name
-            if (kindergartenData && kindergartenData.features) {
-                const selected = kindergartenData.features.find(f =>
-                    f.geometry.coordinates[0] === lngLat.lng && f.geometry.coordinates[1] === lngLat.lat
-                );
-                currentSelectedKindergartenName = selected ? selected.properties.name : null;
-            }
-            
-            const pulseElement = document.createElement('div');
-            pulseElement.className = 'pulsating-dot';
-            
-            marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
-                .setLngLat([lngLat.lng, lngLat.lat])
-                .addTo(map);
-
-            map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, });
-            
-            // Only generate isochrone if we're in the results tab
-            if (currentTab === 'results') {
-                generateKindergartenIsochrone(lngLat);
-            }
-
-            // Load street view if function exists
-            if (typeof loadStreetViewForKindergarten === 'function') {
-                loadStreetViewForKindergarten(lngLat);
-            }
-
-            // Load playground summary
-            loadUrbanEnvironmentAnalysis(lngLat);
-        }
-
-        function filterPointsByIsochrone(isochronePolygon) {
-            if (!kindergartenData || !kindergartenData.features) return [];
-            
-            const pointsInIsochrone = [];
-            kindergartenData.features.forEach(feature => {
-                const point = turf.point(feature.geometry.coordinates);
-                try {
-                    if (turf.booleanPointInPolygon(point, isochronePolygon)) {
-                        pointsInIsochrone.push({
-                            type: 'Feature',
-                            geometry: feature.geometry,
-                            properties: {
-                                name: feature.properties.name || '',
-                                location: feature.properties.name_location || '',
-                                phone: feature.properties.phone || '',
-                                email: feature.properties.email || '',
-                                facebook: feature.properties.facebook || '',
-                                image: feature.properties.image || ''
-                            }
-                        });
-                    }
-                } catch (err) {
-                    console.error('Error checking kindergarten:', err);
-                }
-            });
-            
-            return pointsInIsochrone;
-        }
-
-        function updatePointsLayer(isochronePolygon) {
-            const pointsInIsochrone = filterPointsByIsochrone(isochronePolygon);
-            const geoJSON = { type: 'FeatureCollection', features: pointsInIsochrone };
-            
-            if (map.getSource('isochrone-points')) {
-                map.getSource('isochrone-points').setData(geoJSON);
-            } else {
-                map.addSource('isochrone-points', { type: 'geojson', data: geoJSON });
-                map.addLayer({
-                    id: 'isochrone-points-layer',
-                    type: 'circle',
-                    source: 'isochrone-points',
-                    paint: {
-                        'circle-radius': 5,
-                        'circle-color': '#ae017e',
-                        'circle-opacity': 0.75,
-                        'circle-stroke-width': 0.75,
-                        'circle-stroke-color': '#ffffff',
-                        'circle-radius-transition': { duration: 2000, delay: 3000 },
-                        'circle-color-transition': { duration: 2000, delay: 3000 }
-                    }
-                });
-            }
-            
             displayKindergartenList(pointsInIsochrone);
-            document.getElementById('kindergartenResults').style.display = 'block';
-            updateAccidentsLayer(isochronePolygon);
+            zoomToKindergarten({ lng, lat });
+
+            if (userLocation) {
+                showRoute(userLocation, [lng, lat], resultsMode, true);
+            } else {
+                showRouteToSelected([lng, lat], resultsMode, true);
+            }
+
+            if (typeof loadStreetViewForKindergarten === 'function') {
+                loadStreetViewForKindergarten({ lng, lat });
+            }
+        });
+    });
+}
+
+function displaySchoolList(schoolsInIsochrone) {
+    const list = document.getElementById('kindergartenList');
+    const count = document.getElementById('kindergartenCount');
+    count.textContent = schoolsInIsochrone.length;
+
+    if (schoolsInIsochrone.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">სკოლები არ მოიძებნა</p>';
+        return;
+    }
+
+    // Sort selected school first, rest by distance
+    if (currentSelectedKindergarten && currentSelectedKindergartenName) {
+        const [selLng, selLat] = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
+        schoolsInIsochrone.sort((a, b) => {
+            if (a.properties.name === currentSelectedKindergartenName) return -1;
+            if (b.properties.name === currentSelectedKindergartenName) return 1;
+            const distA = turf.distance(turf.point([selLng, selLat]), turf.point(a.geometry.coordinates));
+            const distB = turf.distance(turf.point([selLng, selLat]), turf.point(b.geometry.coordinates));
+            return distA - distB;
+        });
+    }
+
+    // Render school list
+    list.innerHTML = schoolsInIsochrone.map(feature => {
+        const props = feature.properties;
+        const isSelected = props.name === currentSelectedKindergartenName;
+        
+        // Calculate distance from selected school
+        let distance = '';
+        if (currentSelectedKindergarten) {
+            const dist = turf.distance(
+                turf.point([currentSelectedKindergarten.lng, currentSelectedKindergarten.lat]), 
+                turf.point(feature.geometry.coordinates),
+                { units: 'meters' }
+            );
+            distance = dist < 1000 ? `${Math.round(dist)}მ` : `${(dist/1000).toFixed(1)}კმ`;
         }
 
-        function switchTab(tab) {
-            // Prevent switching to results if user hasn't submitted a survey
-            if (tab === 'results' && !userHasSubmittedSurvey) {
-                alert('გთხოვთ, პირველ რიგში შეავსოთ კითხვარი');
-                return;
-            }
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            const searchContainer = document.querySelector('.search-container');
-            
-            if (tab === 'survey') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('surveyTab').classList.add('active');
-                if (map.getSource('iso')) {
-                    map.getSource('iso').setData({ type: 'FeatureCollection', features: [] });
-                }
-                if (map.getSource('isochrone-points')) {
-                    map.getSource('isochrone-points').setData({ type: 'FeatureCollection', features: [] });
-                }
-                if (map.getSource('isochrone-accidents')) {
-                    map.getSource('isochrone-accidents').setData({ type: 'FeatureCollection', features: [] });
-                }
-                document.getElementById('accidentResults').style.display = 'none';
-                document.getElementById('aggregateResults').style.display = 'none';
-                document.getElementById('kindergartenResults').style.display = 'none';
+        let html = `<div class="kindergarten-item${isSelected ? ' selected' : ''}" 
+                    data-lng="${feature.geometry.coordinates[0]}" 
+                    data-lat="${feature.geometry.coordinates[1]}" 
+                    data-name="${props.name || ''}"
+                    style="border-left: 3px solid #1d91c0;">`;
 
-                // Remove any existing routes and their segment layers
-                ['route-line', 'temp-route-line'].forEach(routeId => {
-                    const coloredLayerId = `${routeId}-colored`;
-                    const outlineLayerId = `${routeId}-colored-outline`;
-                    const segmentSourceId = `${routeId}-segments`;
-                    
-                    if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
-                    if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
-                    if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
-                    
-                    if (map.getLayer(routeId)) map.removeLayer(routeId);
-                    const sourceId = routeId === 'route-line' ? 'route-source' : 'temp-route';
-                    if (map.getSource(sourceId)) map.removeSource(sourceId);
-                });
-
-                // Remove popup if exists
-                const routePopup = document.getElementById('routePopup');
-                if (routePopup) {
-                    routePopup.remove();
-                }
-
-                // Remove the pulsating marker if it exists
-                if (marker) {
-                    marker.remove();
-                    marker = null;
-                }
-                
-                // Reset the selected kindergarten
-                currentSelectedKindergarten = null;
-                currentSelectedKindergartenName = null;
-
-                // Reset map to initial view
-                map.flyTo({
-                    center: [44.800, 41.7350],
-                    zoom: 12,
-                    pitch: 0,
-                    bearing: 0,
-                    duration: 1500
-                });
-                
-            } else if (tab === 'results') {
-                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('resultsTab').classList.add('active');
-                searchContainer.classList.add('visible');
-
-                // Generate isochrone for the already selected kindergarten
-                if (currentSelectedKindergarten) {
-                    generateKindergartenIsochrone(currentSelectedKindergarten);
-                }
-            }
+        html += `<h4>🏫 ${props.name || 'უსახელო სკოლა'}</h4>`;
+        
+        if (distance) {
+            html += `<p>📍 ${distance} მოშორებით</p>`;
         }
         
-        function setResultsMode(mode) {
-            resultsMode = mode;
-            document.querySelectorAll('#resultsTab .toggle').forEach(t => t.classList.remove('active'));
-            document.querySelector(`#resultsTab .toggle[data-mode="${mode}"]`).classList.add('active');
+        if (props.students > 0) {
+            html += `<p>👨‍🎓 მოსწავლეები: <strong>${props.students}</strong></p>`;
+        }
+        
+        if (props.occupancy > 0) {
+            const occupancyColor = props.occupancy > 100 ? '#ef4444' : props.occupancy > 80 ? '#f59e0b' : '#22c55e';
+            html += `<p>📊 დატვირთულობა: <strong style="color: ${occupancyColor}">${props.occupancy}%</strong></p>`;
+        }
+
+        // Show costs if available
+        const totalCost = (props.urgent_cost || 0) + (props.non_urg_cost || 0) + (props.long_cost || 0);
+        if (totalCost > 0) {
+            html += `<div style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 4px; font-size: 11px;">`;
+            html += `<div style="font-weight: 600; margin-bottom: 4px;">💰 საჭირო ინვესტიცია:</div>`;
+            if (props.urgent_cost > 0) html += `<div>• სასწრაფო: ${(props.urgent_cost/1000).toFixed(0)}ათ. ₾</div>`;
+            if (props.non_urg_cost > 0) html += `<div>• არასასწრაფო: ${(props.non_urg_cost/1000).toFixed(0)}ათ. ₾</div>`;
+            if (props.long_cost > 0) html += `<div>• გრძელვადიანი: ${(props.long_cost/1000).toFixed(0)}ათ. ₾</div>`;
+            html += `</div>`;
+        }
+
+        html += '</div>';
+        return html;
+    }).join('');
+
+    let currentHoveredFeatureName = null;
+
+    // Add hover & click behavior for schools
+    schoolsInIsochrone.forEach((feature, index) => {
+        const item = list.children[index];
+        if (!item) return;
+
+        const featureLngLat = feature.geometry.coordinates;
+        const isSelected = feature.properties.name === currentSelectedKindergartenName;
+
+        item.addEventListener('mouseenter', () => {
+            if (isSelected) return;
+            if (!map.getLayer('isochrone-schools-layer')) return;
+
+            if (currentHoveredFeatureName && currentHoveredFeatureName !== feature.properties.name) {
+                if (map.getLayer('temp-route-line-colored')) map.removeLayer('temp-route-line-colored');
+                if (map.getLayer('temp-route-line-colored-outline-glow-outer')) map.removeLayer('temp-route-line-colored-outline-glow-outer');
+                if (map.getLayer('temp-route-line-colored-outline-glow-middle')) map.removeLayer('temp-route-line-colored-outline-glow-middle');
+                if (map.getSource('temp-route-line-segments')) map.removeSource('temp-route-line-segments');
+                const existingPopup = document.getElementById('routePopup');
+                if (existingPopup) existingPopup.remove();
+            }
+
+            currentHoveredFeatureName = feature.properties.name;
+
+            map.setPaintProperty('isochrone-schools-layer', 'circle-radius', [
+                'case', ['==', ['get', 'name'], feature.properties.name], 10, 6
+            ]);
+            map.setPaintProperty('isochrone-schools-layer', 'circle-stroke-width', [
+                'case', ['==', ['get', 'name'], feature.properties.name], 3, 2
+            ]);
+
+            let from;
+            if (userLocation) {
+                from = userLocation;
+            } else if (currentSelectedKindergarten) {
+                from = [currentSelectedKindergarten.lng, currentSelectedKindergarten.lat];
+            } else {
+                return;
+            }
+
+            showRoute(from, featureLngLat, resultsMode, false);
+        });
+
+        item.addEventListener('click', () => {
+            const lng = parseFloat(item.dataset.lng);
+            const lat = parseFloat(item.dataset.lat);
+            const name = item.dataset.name;
+
+            currentHoveredFeatureName = null;
+            currentSelectedKindergarten = { lng, lat };
+            currentSelectedKindergartenName = name;
+
+            displaySchoolList(schoolsInIsochrone);
+            zoomToSchool({ lng, lat });
+
+            if (userLocation) {
+                showRoute(userLocation, [lng, lat], resultsMode, true);
+            } else {
+                showRouteToSelected([lng, lat], resultsMode, true);
+            }
+
+            if (typeof loadStreetViewForKindergarten === 'function') {
+                loadStreetViewForKindergarten({ lng, lat });
+            }
+        });
+    });
+}
+
+function zoomToKindergarten(lngLat) {
+    if (marker) marker.remove();
+
+    currentSelectedKindergarten = { lng: lngLat.lng, lat: lngLat.lat };
+    currentFacilityType = 'kindergarten';
+
+    if (kindergartenData && kindergartenData.features) {
+        const selected = kindergartenData.features.find(f =>
+            f.geometry.coordinates[0] === lngLat.lng && f.geometry.coordinates[1] === lngLat.lat
+        );
+        currentSelectedKindergartenName = selected ? selected.properties.name : null;
+    }
+    
+    const pulseElement = document.createElement('div');
+    pulseElement.className = 'pulsating-dot';
+    
+    marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+        .setLngLat([lngLat.lng, lngLat.lat])
+        .addTo(map);
+
+    map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15 });
+    
+    if (currentTab === 'results') {
+        generateKindergartenIsochrone(lngLat);
+    }
+
+    if (typeof loadStreetViewForKindergarten === 'function') {
+        loadStreetViewForKindergarten(lngLat);
+    }
+
+    if (typeof loadUrbanEnvironmentAnalysis === 'function') {
+        loadUrbanEnvironmentAnalysis(lngLat);
+    }
+}
+
+function zoomToSchool(lngLat) {
+    if (marker) marker.remove();
+    
+    currentSelectedKindergarten = { lng: lngLat.lng, lat: lngLat.lat };
+    currentFacilityType = 'school';
+
+    if (publicSchoolData && publicSchoolData.features) {
+        const selected = publicSchoolData.features.find(f =>
+            f.geometry.coordinates[0] === lngLat.lng && f.geometry.coordinates[1] === lngLat.lat
+        );
+        currentSelectedKindergartenName = selected ? selected.properties.სკოლა : null;
+    }
+    
+    const pulseElement = document.createElement('div');
+    pulseElement.className = 'pulsating-dot';
+    pulseElement.style.backgroundColor = '#1d91c0';
+    
+    marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+        .setLngLat([lngLat.lng, lngLat.lat])
+        .addTo(map);
+
+    map.flyTo({ 
+        center: [lngLat.lng, lngLat.lat], 
+        zoom: 16,
+        pitch: 60,
+        bearing: 0,
+        duration: 1500
+    });
+    
+    if (currentTab === 'results') {
+        generateSchoolIsochrone(lngLat);
+    }
+
+    if (typeof loadStreetViewForKindergarten === 'function') {
+        loadStreetViewForKindergarten(lngLat);
+    }
+
+    if (typeof loadUrbanEnvironmentAnalysis === 'function') {
+        loadUrbanEnvironmentAnalysis(lngLat);
+    }
+}
+
+function filterPointsByIsochrone(isochronePolygon) {
+    if (!kindergartenData || !kindergartenData.features) return [];
+    
+    const pointsInIsochrone = [];
+    kindergartenData.features.forEach(feature => {
+        const point = turf.point(feature.geometry.coordinates);
+        try {
+            if (turf.booleanPointInPolygon(point, isochronePolygon)) {
+                pointsInIsochrone.push({
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: {
+                        name: feature.properties.name || '',
+                        location: feature.properties.name_location || '',
+                        phone: feature.properties.phone || '',
+                        email: feature.properties.email || '',
+                        facebook: feature.properties.facebook || '',
+                        image: feature.properties.image || ''
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error checking kindergarten:', err);
+        }
+    });
+    
+    return pointsInIsochrone;
+}
+
+function filterSchoolsByIsochrone(isochronePolygon) {
+    if (!publicSchoolData || !publicSchoolData.features) return [];
+    
+    const schoolsInIsochrone = [];
+    publicSchoolData.features.forEach(feature => {
+        const point = turf.point(feature.geometry.coordinates);
+        try {
+            if (turf.booleanPointInPolygon(point, isochronePolygon)) {
+                schoolsInIsochrone.push({
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: {
+                        name: feature.properties.სკოლა || '',
+                        students: feature.properties.students || 0,
+                        occupancy: feature.properties.occupancy || 0,
+                        urgent_cost: feature.properties.urgent_cost || 0,
+                        non_urg_cost: feature.properties.non_urg_cost || 0,
+                        long_cost: feature.properties.long_cost || 0
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error checking school:', err);
+        }
+    });
+    
+    return schoolsInIsochrone;
+}
+
+function updatePointsLayer(isochronePolygon) {
+    if (currentFacilityType === 'kindergarten') {
+        const pointsInIsochrone = filterPointsByIsochrone(isochronePolygon);
+        const geoJSON = { type: 'FeatureCollection', features: pointsInIsochrone };
+        
+        if (map.getSource('isochrone-points')) {
+            map.getSource('isochrone-points').setData(geoJSON);
+        } else {
+            map.addSource('isochrone-points', { type: 'geojson', data: geoJSON });
+            map.addLayer({
+                id: 'isochrone-points-layer',
+                type: 'circle',
+                source: 'isochrone-points',
+                paint: {
+                    'circle-radius': 5,
+                    'circle-color': '#ae017e',
+                    'circle-opacity': 0.75,
+                    'circle-stroke-width': 0.75,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-radius-transition': { duration: 2000, delay: 3000 },
+                    'circle-color-transition': { duration: 2000, delay: 3000 }
+                }
+            });
+        }
+        
+        displayKindergartenList(pointsInIsochrone);
+        document.getElementById('kindergartenResults').style.display = 'block';
+    } else if (currentFacilityType === 'school') {
+        // Hide kindergarten points when school is selected
+        if (map.getSource('isochrone-points')) {
+            map.getSource('isochrone-points').setData({ type: 'FeatureCollection', features: [] });
+        }
+        document.getElementById('kindergartenResults').style.display = 'none';
+    }
+    
+    if (typeof updateAccidentsLayer === 'function') {
+        updateAccidentsLayer(isochronePolygon);
+    }
+}
+
+function updateSchoolsLayer(isochronePolygon) {
+    if (currentFacilityType === 'school') {
+        const schoolsInIsochrone = filterSchoolsByIsochrone(isochronePolygon);
+        const geoJSON = { type: 'FeatureCollection', features: schoolsInIsochrone };
+        
+        if (map.getSource('isochrone-schools')) {
+            map.getSource('isochrone-schools').setData(geoJSON);
+        } else {
+            map.addSource('isochrone-schools', { type: 'geojson', data: geoJSON });
+            map.addLayer({
+                id: 'isochrone-schools-layer',
+                type: 'circle',
+                source: 'isochrone-schools',
+                paint: {
+                    'circle-radius': 6,
+                    'circle-color': '#1d91c0',
+                    'circle-opacity': 0.75,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-radius-transition': { duration: 300 },
+                    'circle-color-transition': { duration: 300 }
+                }
+            });
+        }
+        
+        console.log('Schools in isochrone:', schoolsInIsochrone.length);
+        displaySchoolList(schoolsInIsochrone);
+        document.getElementById('kindergartenResults').style.display = 'block';
+    } else if (currentFacilityType === 'kindergarten') {
+        // Hide schools when kindergarten is selected
+        if (map.getSource('isochrone-schools')) {
+            map.getSource('isochrone-schools').setData({ type: 'FeatureCollection', features: [] });
+        }
+    }
+}
+
+function generateKindergartenIsochrone(lngLat) {
+    const time = 15;
+    const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.features || data.features.length === 0) return;
+
+            if (map.getSource('iso')) {
+                map.getSource('iso').setData(data);
+            } else {
+                map.addSource('iso', { type: 'geojson', data });
+                map.addLayer({
+                    id: 'isoLayer',
+                    type: 'fill',
+                    source: 'iso',
+                    paint: {
+                        'fill-color': '#5a3fc0',
+                        'fill-opacity': 0.3
+                    }
+                });
+            }
+
+            const isochroneFeature = data.features[0];
+            currentIsochronePolygon = isochroneFeature;
             
-            if (currentSelectedKindergarten && currentTab === 'results' && currentIsochronePolygon) {
-                generateKindergartenIsochroneWithMode(currentSelectedKindergarten, mode);
+            updatePointsLayer(isochroneFeature);
+            updateSchoolsLayer(isochroneFeature);
+
+            const bbox = turf.bbox(isochroneFeature);
+            map.fitBounds(bbox, { padding: 0, maxZoom: 19, minZoom: 12 });
+
+            if (marker) {
+                marker.remove();
+                const pulseElement = document.createElement('div');
+                pulseElement.className = 'pulsating-dot';
+                marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+                    .setLngLat([lngLat.lng, lngLat.lat])
+                    .addTo(map);
+            }
+
+            if (typeof aggregateResultsInIsochrone === 'function') {
+                const aggregated = aggregateResultsInIsochrone(isochroneFeature);
+                displayAggregatedResults(aggregated);
+                document.getElementById('aggregateResults').style.display = 'block';
+            }
+        })
+        .catch(err => console.error('Isochrone error:', err));
+}
+
+function generateSchoolIsochrone(lngLat) {
+    const time = 15;
+    const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.features || data.features.length === 0) return;
+
+            if (map.getSource('iso')) {
+                map.getSource('iso').setData(data);
+            } else {
+                map.addSource('iso', { type: 'geojson', data });
+                map.addLayer({
+                    id: 'isoLayer',
+                    type: 'fill',
+                    source: 'iso',
+                    paint: {
+                        'fill-color': '#1d91c0',
+                        'fill-opacity': 0.3
+                    }
+                });
+            }
+
+            const isochroneFeature = data.features[0];
+            currentIsochronePolygon = isochroneFeature;
+            
+            updatePointsLayer(isochroneFeature);
+            updateSchoolsLayer(isochroneFeature);
+
+            const bbox = turf.bbox(isochroneFeature);
+            map.fitBounds(bbox, { padding: 0, maxZoom: 19, minZoom: 12 });
+        })
+        .catch(err => console.error('Isochrone error:', err));
+}
+
+function switchTab(tab) {
+    // Prevent switching to results if user hasn't submitted a survey
+    if (tab === 'results' && !userHasSubmittedSurvey) {
+        alert('გთხოვთ, პირველ რიგში შეავსოთ კითხვარი');
+        return;
+    }
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    const searchContainer = document.querySelector('.search-container');
+    
+    if (tab === 'survey') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('surveyTab').classList.add('active');
+        if (map.getSource('iso')) {
+            map.getSource('iso').setData({ type: 'FeatureCollection', features: [] });
+        }
+        if (map.getSource('isochrone-points')) {
+            map.getSource('isochrone-points').setData({ type: 'FeatureCollection', features: [] });
+        }
+        if (map.getSource('isochrone-accidents')) {
+            map.getSource('isochrone-accidents').setData({ type: 'FeatureCollection', features: [] });
+        }
+        if (map.getSource('isochrone-schools')) {
+            map.getSource('isochrone-schools').setData({ type: 'FeatureCollection', features: [] });
+        }
+        document.getElementById('accidentResults').style.display = 'none';
+        document.getElementById('aggregateResults').style.display = 'none';
+        document.getElementById('kindergartenResults').style.display = 'none';
+
+        // Remove any existing routes and their segment layers
+        ['route-line', 'temp-route-line'].forEach(routeId => {
+            const coloredLayerId = `${routeId}-colored`;
+            const outlineLayerId = `${routeId}-colored-outline`;
+            const segmentSourceId = `${routeId}-segments`;
+            
+            if (map.getLayer(`${outlineLayerId}-glow-outer`)) map.removeLayer(`${outlineLayerId}-glow-outer`);
+            if (map.getLayer(`${outlineLayerId}-glow-middle`)) map.removeLayer(`${outlineLayerId}-glow-middle`);
+            if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
+            if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
+            if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
+            
+            if (map.getLayer(routeId)) map.removeLayer(routeId);
+            const sourceId = routeId === 'route-line' ? 'route-source' : 'temp-route';
+            if (map.getSource(sourceId)) map.removeSource(sourceId);
+        });
+
+        // Remove popup if exists
+        const routePopup = document.getElementById('routePopup');
+        if (routePopup) {
+            routePopup.remove();
+        }
+
+        // Remove the pulsating marker if it exists
+        if (marker) {
+            marker.remove();
+            marker = null;
+        }
+        
+        // Reset the selected kindergarten/school
+        currentSelectedKindergarten = null;
+        currentSelectedKindergartenName = null;
+        currentFacilityType = null;
+
+        // Reset map to initial view
+        map.flyTo({
+            center: [44.800, 41.7350],
+            zoom: 12,
+            pitch: 0,
+            bearing: 0,
+            duration: 1500
+        });
+        
+    } else if (tab === 'results') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('resultsTab').classList.add('active');
+        searchContainer.classList.add('visible');
+
+        // Generate isochrone for the already selected facility
+        if (currentSelectedKindergarten) {
+            if (currentFacilityType === 'kindergarten') {
+                generateKindergartenIsochrone(currentSelectedKindergarten);
+            } else if (currentFacilityType === 'school') {
+                generateSchoolIsochrone(currentSelectedKindergarten);
             }
         }
+    }
+}
 
-        function generateKindergartenIsochrone(lngLat) {
-            const time = 15;
-            const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
+function setResultsMode(mode) {
+    resultsMode = mode;
+    document.querySelectorAll('#resultsTab .toggle').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#resultsTab .toggle[data-mode="${mode}"]`).classList.add('active');
+    
+    if (currentSelectedKindergarten && currentTab === 'results' && currentIsochronePolygon) {
+        generateKindergartenIsochroneWithMode(currentSelectedKindergarten, mode);
+    }
+}
 
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.features || data.features.length === 0) return;
+function generateKindergartenIsochroneWithMode(lngLat, mode) {
+    const time = document.getElementById('timeResults').value;
+    console.log('Generating isochrone with time:', time, 'mode:', mode);
+    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
 
-                    if (map.getSource('iso')) {
-                        map.getSource('iso').setData(data);
-                    } else {
-                        map.addSource('iso', { type: 'geojson', data });
-                        map.addLayer({
-                            id: 'isoLayer',
-                            type: 'fill',
-                            source: 'iso',
-                            paint: {
-                                'fill-color': '#5a3fc0',
-                                'fill-opacity': 0.3
-                            }
-                        });
-                    }
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            console.log('Isochrone response:', data);
+            if (!data.features || data.features.length === 0) {
+                console.error('No features in isochrone response');
+                return;
+            }
 
-                    const isochroneFeature = data.features[0];
-                    currentIsochronePolygon = isochroneFeature;
-                    
-                    updatePointsLayer(isochroneFeature);
+            if (map.getSource('iso')) {
+                map.getSource('iso').setData(data);
+            }
 
-                    const bbox = turf.bbox(isochroneFeature);
-                    map.fitBounds(bbox, { padding: 0, maxZoom: 19, minZoom: 12 });
+            const isochroneFeature = data.features[0];
+            currentIsochronePolygon = isochroneFeature;
+            
+            updatePointsLayer(isochroneFeature);
+            updateSchoolsLayer(isochroneFeature);
 
-                    if (marker) {
-                        marker.remove();
-                        const pulseElement = document.createElement('div');
-                        pulseElement.className = 'pulsating-dot';
-                        marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
-                            .setLngLat([lngLat.lng, lngLat.lat])
-                            .addTo(map);
-                    }
+            const bbox = turf.bbox(isochroneFeature);
+            map.fitBounds(bbox, { padding: 0, maxZoom: 20, minZoom: 12 });
 
-                    const aggregated = aggregateResultsInIsochrone(isochroneFeature);
-                    displayAggregatedResults(aggregated);
-                    document.getElementById('aggregateResults').style.display = 'block';
-                })
-                .catch(err => console.error('Isochrone error:', err));
-
-                loadStreetViewForKindergarten(lngLat);
-        }
-
-        function generateKindergartenIsochroneWithMode(lngLat, mode) {
-            const time = document.getElementById('timeResults').value;
-            console.log('Generating isochrone with time:', time, 'mode:', mode);
-            const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
-
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    console.log('Isochrone response:', data);
-                    if (!data.features || data.features.length === 0) {
-                        console.error('No features in isochrone response');
-                        return;
-                    }
-
-                    if (map.getSource('iso')) {
-                        map.getSource('iso').setData(data);
-                    }
-
-                    const isochroneFeature = data.features[0];
-                    currentIsochronePolygon = isochroneFeature;
-                    
-                    updatePointsLayer(isochroneFeature);
-
-                    const bbox = turf.bbox(isochroneFeature);
-                    map.fitBounds(bbox, { padding: 0, maxZoom: 20, minZoom: 12 });
-
-                    const aggregated = aggregateResultsInIsochrone(isochroneFeature);
-                    displayAggregatedResults(aggregated);
-                    document.getElementById('aggregateResults').style.display = 'block';
-                })
-                .catch(err => console.error('Isochrone error:', err));
-        }
+            if (typeof aggregateResultsInIsochrone === 'function') {
+                const aggregated = aggregateResultsInIsochrone(isochroneFeature);
+                displayAggregatedResults(aggregated);
+                document.getElementById('aggregateResults').style.display = 'block';
+            }
+        })
+        .catch(err => console.error('Isochrone error:', err));
+}
         
         function aggregateResultsInIsochrone(isochronePolygon) {
             const aggregated = { total: 0, age: {}, gender: {}, ageGender: {}, safety: {}, reason: {}, priority: {}, grids: [] };

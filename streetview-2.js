@@ -2,7 +2,7 @@
 // ============================================
 // API KEYS - Replace with your keys
 // ============================================
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBhG_FVUHo8UiYi6SgsnrsUDhEiobzvGio';
+// const GOOGLE_MAPS_API_KEY = '';
 const MAPILLARY_CLIENT_TOKEN = 'MLY|24314119614934772|574fb7a546cc6d61a240f83f11e151c2';
 
 /**
@@ -149,12 +149,14 @@ async function fetchGoogleStreetView(pinCoords) {
 
 /**
  * Fetch Mapillary images around a pin location
+ * Searches at specific distances: 50m, 100m, 150m, 200m, 250m
  */
 async function fetchMapillaryImages(pinCoords) {
     try {
         console.log('Fetching Mapillary images for location:', pinCoords);
         
-        const bufferDegrees = 0.0015;
+        // Expand bbox to cover 250m radius (approximately 0.0025 degrees)
+        const bufferDegrees = 0.0025;
         const bbox = [
             pinCoords[0] - bufferDegrees,
             pinCoords[1] - bufferDegrees,
@@ -164,7 +166,7 @@ async function fetchMapillaryImages(pinCoords) {
         
         const url = `https://graph.mapillary.com/images?access_token=${MAPILLARY_CLIENT_TOKEN}&fields=id,geometry,captured_at,thumb_1024_url,compass_angle&bbox=${bbox.join(',')}&limit=2000`;
         
-        console.log('Mapillary bbox:', bbox);
+        console.log('Mapillary bbox (250m radius):', bbox);
         
         const response = await fetch(url);
         const data = await response.json();
@@ -181,6 +183,8 @@ async function fetchMapillaryImages(pinCoords) {
         
         console.log(`Mapillary: ${data.data.length} images found in bbox`);
         
+        const distances = [50, 100, 150, 200, 250];
+        
         const processedImages = data.data
             .map(img => {
                 const imgLng = img.geometry.coordinates[0];
@@ -192,11 +196,16 @@ async function fetchMapillaryImages(pinCoords) {
                     distance
                 };
             })
-            .filter(img => img.distance >= 10 && img.distance <= 100)
+            .filter(img => img.distance >= 30 && img.distance <= 270) // Allow some margin around target distances
             .map(img => {
                 const imgLng = img.geometry.coordinates[0];
                 const imgLat = img.geometry.coordinates[1];
                 const bearing = calculateBearing(pinCoords[1], pinCoords[0], imgLat, imgLng);
+                
+                // Find closest target distance
+                const targetDistance = distances.reduce((prev, curr) => 
+                    Math.abs(curr - img.distance) < Math.abs(prev - img.distance) ? curr : prev
+                );
                 
                 return {
                     id: img.id,
@@ -208,11 +217,17 @@ async function fetchMapillaryImages(pinCoords) {
                     coordinates: [imgLng, imgLat],
                     captured_at: img.captured_at,
                     compassAngle: img.compass_angle || 0,
-                    url: `https://www.mapillary.com/app/?pKey=${img.id}`
+                    url: `https://www.mapillary.com/app/?pKey=${img.id}`,
+                    targetDistance: targetDistance
                 };
             });
         
-        console.log(`Mapillary: ${processedImages.length} images in 10-100m range`);
+        console.log(`Mapillary: ${processedImages.length} images in 50-250m range`);
+        console.log(`Distance breakdown:`, distances.map(d => {
+            const count = processedImages.filter(img => Math.abs(img.targetDistance - d) < 25).length;
+            return `${d}m: ${count}`;
+        }).join(', '));
+        
         return processedImages;
     } catch (error) {
         console.error('Error fetching Mapillary images:', error);
@@ -282,7 +297,43 @@ function displayStreetViewImages(images) {
 }
 
 /**
+ * Filter out images that are too close to each other
+ * Ensures minimum separation distance between selected images
+ */
+function filterImagesByMinimumSeparation(images, minSeparationMeters = 30) {
+    if (images.length === 0) return [];
+    
+    const filtered = [images[0]]; // Always include the first (closest) image
+    
+    for (let i = 1; i < images.length; i++) {
+        const candidate = images[i];
+        let tooClose = false;
+        
+        // Check distance to all already selected images
+        for (const selected of filtered) {
+            const separation = calculateDistance(
+                selected.coordinates[1], selected.coordinates[0],
+                candidate.coordinates[1], candidate.coordinates[0]
+            );
+            
+            if (separation < minSeparationMeters) {
+                tooClose = true;
+                break;
+            }
+        }
+        
+        if (!tooClose) {
+            filtered.push(candidate);
+        }
+    }
+    
+    return filtered;
+}
+
+/**
  * Load and display street view images for a kindergarten location
+ * Now searches at specific distances: 50m, 100m, 150m, 200m, 250m
+ * Ensures images are at least 30m apart from each other
  */
 async function loadStreetViewForKindergarten(lngLat) {
     // Show the street view section
@@ -294,16 +345,88 @@ async function loadStreetViewForKindergarten(lngLat) {
             <div style="text-align: center; padding: 40px;">
                 <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
                 <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">იტვირთება ქუჩის ფოტოები...</div>
+                <div style="font-size: 12px; color: #666;">მოძებნება: 50, 100, 150, 200, 250 მეტრის რადიუსში</div>
             </div>
         </div>`;
     
     // Fetch images
     const images = await fetchCombinedStreetView([lngLat.lng, lngLat.lat]);
     
-    // Sort and select the 5 closest images
-    const selectedImages = images
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 5);
+    // Sort by distance first
+    images.sort((a, b) => a.distance - b.distance);
+    
+    // Group images by target distance ranges for better distribution
+    const distanceRanges = [
+        { min: 25, max: 75, target: 50 },
+        { min: 75, max: 125, target: 100 },
+        { min: 125, max: 175, target: 150 },
+        { min: 175, max: 225, target: 200 },
+        { min: 225, max: 275, target: 250 }
+    ];
+    
+    let selectedImages = [];
+    
+    // Try to get at least one image from each distance range
+    // ensuring minimum 30m separation between images
+    distanceRanges.forEach(range => {
+        const imagesInRange = images.filter(img => 
+            img.distance >= range.min && img.distance <= range.max
+        );
+        
+        for (const candidate of imagesInRange) {
+            let tooClose = false;
+            
+            // Check if this candidate is too close to any already selected image
+            for (const selected of selectedImages) {
+                const separation = calculateDistance(
+                    selected.coordinates[1], selected.coordinates[0],
+                    candidate.coordinates[1], candidate.coordinates[0]
+                );
+                
+                if (separation < 30) { // Minimum 30m separation
+                    tooClose = true;
+                    break;
+                }
+            }
+            
+            if (!tooClose) {
+                selectedImages.push(candidate);
+                break; // Found one for this range, move to next range
+            }
+        }
+    });
+    
+    // If we don't have enough images, fill with remaining ones
+    // while still maintaining minimum separation
+    if (selectedImages.length < 5) {
+        const remainingImages = images.filter(img => !selectedImages.includes(img));
+        
+        for (const candidate of remainingImages) {
+            if (selectedImages.length >= 5) break;
+            
+            let tooClose = false;
+            for (const selected of selectedImages) {
+                const separation = calculateDistance(
+                    selected.coordinates[1], selected.coordinates[0],
+                    candidate.coordinates[1], candidate.coordinates[0]
+                );
+                
+                if (separation < 30) {
+                    tooClose = true;
+                    break;
+                }
+            }
+            
+            if (!tooClose) {
+                selectedImages.push(candidate);
+            }
+        }
+    }
+    
+    // Sort final selection by distance
+    selectedImages.sort((a, b) => a.distance - b.distance);
+    
+    console.log(`Selected ${selectedImages.length} images with minimum 30m separation`);
     
     // Display street view images
     displayStreetViewImages(selectedImages);
