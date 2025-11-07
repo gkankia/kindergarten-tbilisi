@@ -3,6 +3,9 @@
 // ============================================
 
 (function() {
+    let isInitialized = false;
+    let resizeObserver = null;
+
     // Check if we're on mobile
     function isMobile() {
         return window.innerWidth <= 768;
@@ -24,9 +27,25 @@
         return handle;
     }
 
+    // Clean up existing listeners
+    function cleanup() {
+        const handle = document.querySelector('.resize-handle');
+        if (handle) {
+            const newHandle = handle.cloneNode(true);
+            handle.parentNode.replaceChild(newHandle, handle);
+        }
+    }
+
     // Initialize draggable divider
     function initDraggableDivider() {
-        if (!isMobile()) return;
+        // Prevent multiple initializations
+        if (isInitialized) return;
+        
+        if (!isMobile()) {
+            const handle = document.querySelector('.resize-handle');
+            if (handle) handle.style.display = 'none';
+            return;
+        }
 
         const handle = createResizeHandle();
         const mapElement = document.getElementById('map');
@@ -34,10 +53,14 @@
         
         if (!handle || !mapElement || !sidebar) return;
 
+        // Mark as initialized
+        isInitialized = true;
+
         let isDragging = false;
         let startY = 0;
         let startMapHeight = 0;
         let startSidebarHeight = 0;
+        let rafId = null;
 
         // Handle drag start
         function onDragStart(e) {
@@ -58,33 +81,40 @@
             e.preventDefault();
         }
 
-        // Handle dragging
+        // Handle dragging with requestAnimationFrame for better performance
         function onDrag(e) {
             if (!isDragging) return;
 
-            // Get current Y position
-            const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-            const deltaY = currentY - startY;
-
-            // Calculate new heights
-            const newMapHeight = startMapHeight + deltaY;
-            const newSidebarHeight = startSidebarHeight - deltaY;
-
-            // Set minimum heights (20vh for each)
-            const minHeight = window.innerHeight * 0.2;
-            
-            if (newMapHeight >= minHeight && newSidebarHeight >= minHeight) {
-                const mapHeightVh = (newMapHeight / window.innerHeight) * 100;
-                const sidebarHeightVh = (newSidebarHeight / window.innerHeight) * 100;
-                
-                mapElement.style.height = `${mapHeightVh}vh`;
-                sidebar.style.height = `${sidebarHeightVh}vh`;
-                
-                // Trigger map resize for proper rendering
-                if (typeof map !== 'undefined' && map.resize) {
-                    map.resize();
-                }
+            // Cancel previous frame
+            if (rafId) {
+                cancelAnimationFrame(rafId);
             }
+
+            rafId = requestAnimationFrame(() => {
+                // Get current Y position
+                const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                const deltaY = currentY - startY;
+
+                // Calculate new heights
+                const newMapHeight = startMapHeight + deltaY;
+                const newSidebarHeight = startSidebarHeight - deltaY;
+
+                // Set minimum heights (20vh for each)
+                const minHeight = window.innerHeight * 0.2;
+                
+                if (newMapHeight >= minHeight && newSidebarHeight >= minHeight) {
+                    const mapHeightVh = (newMapHeight / window.innerHeight) * 100;
+                    const sidebarHeightVh = (newSidebarHeight / window.innerHeight) * 100;
+                    
+                    mapElement.style.height = `${mapHeightVh}vh`;
+                    sidebar.style.height = `${sidebarHeightVh}vh`;
+                    
+                    // Trigger map resize for proper rendering (throttled)
+                    if (typeof map !== 'undefined' && map.resize) {
+                        map.resize();
+                    }
+                }
+            });
 
             e.preventDefault();
         }
@@ -96,11 +126,16 @@
             isDragging = false;
             handle.style.background = '';
             document.body.style.cursor = '';
+            
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
         }
 
         // Mouse events
-        handle.addEventListener('mousedown', onDragStart);
-        document.addEventListener('mousemove', onDrag);
+        handle.addEventListener('mousedown', onDragStart, { passive: false });
+        document.addEventListener('mousemove', onDrag, { passive: false });
         document.addEventListener('mouseup', onDragEnd);
 
         // Touch events
@@ -108,23 +143,33 @@
         document.addEventListener('touchmove', onDrag, { passive: false });
         document.addEventListener('touchend', onDragEnd);
         document.addEventListener('touchcancel', onDragEnd);
+    }
 
-        // Clean up on window resize
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (!isMobile()) {
-                    // Reset to default on desktop
-                    mapElement.style.height = '';
-                    sidebar.style.height = '';
-                    if (handle) handle.style.display = 'none';
-                } else {
-                    // Ensure handle is visible on mobile
-                    if (handle) handle.style.display = 'block';
-                }
-            }, 250);
-        });
+    // Handle window resize without reloading
+    let resizeTimeout;
+    function handleResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const wasMobile = isInitialized;
+            const nowMobile = isMobile();
+            
+            if (wasMobile && !nowMobile) {
+                // Switched from mobile to desktop
+                const mapElement = document.getElementById('map');
+                const sidebar = document.querySelector('.sidebar');
+                const handle = document.querySelector('.resize-handle');
+                
+                if (mapElement) mapElement.style.height = '';
+                if (sidebar) sidebar.style.height = '';
+                if (handle) handle.style.display = 'none';
+                
+                isInitialized = false;
+            } else if (!wasMobile && nowMobile) {
+                // Switched from desktop to mobile
+                isInitialized = false;
+                initDraggableDivider();
+            }
+        }, 300);
     }
 
     // Initialize when DOM is ready
@@ -134,8 +179,6 @@
         initDraggableDivider();
     }
 
-    // Re-initialize on window resize (in case orientation changes)
-    window.addEventListener('resize', () => {
-        setTimeout(initDraggableDivider, 300);
-    });
+    // Single resize listener
+    window.addEventListener('resize', handleResize);
 })();
