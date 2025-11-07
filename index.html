@@ -245,7 +245,7 @@
                                 'ვარსკვლავი', 'მთვარე', 'ნისლი', 'თოვლი', 'წვიმა', 'რადიო', 'წიგნი', 'სახლი', 'გზა', 'ხიდი', 'კარი', 'ფანჯარა', 
                                 'ბაღი', 'ეზო', 'ქუჩა', 'მოედანი', 'ციხე', 'ეკლესია', 'მუზეუმი', 'პარკი', 'ბულვარი', 'სკვერი', 'შადრევანი', 'ძეგლი', 
                                 'თეატრი', 'კინო', 'ყურძენი', 'ვაშლი', 'მსხალი', 'ატამი', 'ფორთოხალი', 'ლიმონი', 'ჟოლო', 'კივი', 'ბანანი', 'საზამთრო', 
-                                'ოლიგარქია', 'კორუფცია', 'საპატრიარქო', 'ყაჩაღები', 'ავტობუსი'];
+                                'ოლიგარქია', 'კორუფცია', 'საპატრიარქო', 'ყაჩაღები', 'ავტობუსი', 'ტროტუარი', 'ბტნბძნ'];
         
         function toggleDropdown(id) {
             const content = document.getElementById(id);
@@ -1141,6 +1141,22 @@ function generateSchoolIsochrone(lngLat) {
 
             const bbox = turf.bbox(isochroneFeature);
             map.fitBounds(bbox, { padding: 0, maxZoom: 19, minZoom: 12 });
+
+            if (marker) {
+                marker.remove();
+                const pulseElement = document.createElement('div');
+                pulseElement.className = 'pulsating-dot';
+                pulseElement.style.backgroundColor = '#1d91c0';
+                marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
+                    .setLngLat([lngLat.lng, lngLat.lat])
+                    .addTo(map);
+            }
+
+            if (typeof aggregateResultsInIsochrone === 'function') {
+                const aggregated = aggregateResultsInIsochrone(isochroneFeature);
+                displayAggregatedResults(aggregated);
+                document.getElementById('aggregateResults').style.display = 'block';
+            }
         })
         .catch(err => console.error('Isochrone error:', err));
 }
