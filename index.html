@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Urbanyx - Kindergartens</title>
+    <title>Urbanyx - City Analysis</title>
 
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -106,7 +106,7 @@
         
         <div class="sidebar">
             <div class="title"><h1>URBANYX</h1></div>
-            <div class="subtitle"><h3>უსაფრთხო გარემო ბავშვებისთვის</h3></div>
+            <div class="subtitle"><h3>ანალიტიკა უსაფრთხო ქალაქისთვის</h3></div>
 
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchTab('survey')">კითხვარი</button>
@@ -115,15 +115,17 @@
             
             <div id="surveyTab" class="tab-content active">
                 <div class="section">
-                    <button class="dropdown-toggle">გაეცანი, როგორ მუშაობს პლატფორმა ▼</button>
-                    <div class="dropdown-item">
-                        <p style="font-size: 12px; line-height: 1.6;">
-                            • იპოვე სასურველი საჯარო სკოლა თუ ბაღი შენს სიახლოვეს<br>
-                            • შეგიძლია გამოიყენო ავტომატური ნავიგაციის ღილაკიც<br>
-                            • დააკლიკე შესაბამის კვადრატზე<br>
-                            • შეავსე კითხვარი და შეგვატყობინე, რამდენად უსაფრთხოა შენ მიერ მონიშნული გარემო ბავშვებისთვის<br>
-                            • იხილე ანალიზი, რამდენად უსაფრთხოა მარშრუტი შესაბამის დაწესებულებამდე
-                        </p>
+                    <p style="font-size: 16px; padding: 10px 0 0 0; text-align: left;">
+                        პლატფორმის გამოსაყენებლად, გაეცანი ინსტრუქციას
+                    </p>
+                    <div class="dropdown-item" style="display: block;">
+                        <ol class="instruction-list">
+                            <li>იპოვე სასურველი საჯარო სკოლა თუ ბაღი შენს სიახლოვეს</li>
+                            <li>შეგიძლია გამოიყენო ავტომატური ნავიგაციის ღილაკიც</li>
+                            <li>დააკლიკე ბაღის, სკოლის ან შენი ლოკაციის მანიშნებლის შესაბამის კვადრატზე</li>
+                            <li>შეავსე კითხვარი და შეგვატყობინე, რამდენად უსაფრთხოა ეს გარემო, განსაკუთრებით ბავშვებისთვის</li>
+                            <li>გაეცანი შეჯამებულ ანალიზს</li>
+                        </ol>
                     </div>
                 </div>
             </div>
@@ -132,6 +134,13 @@
                 <div class="section">
                     <button class="dropdown-toggle">ინსტრუქცია ანალიზისთვის ▼</button>
                     <div class="dropdown-item">
+                        <ol class="instruction-list">
+                            <li>შეგიძლია შეცვალო ანალიზის არეალი გადაადგილების დროისა და ფორმის მიხედვით</li>
+                            <li>ანალიზის პანელში იხილავ შეჯამებულ ანალიზს</li>
+                            <li></li>
+                            <li></li>
+                            <li>გაეცანი შეჯამებულ ანალიზს</li>
+                        </ol>
                         <p style="font-size: 12px; line-height: 1.6;">
                             • ანალიზის არეალი შეგიძლია აკონტროლო გადაადგილების დროისა და ფორმის მიხედვით<br>
                             • ქვემოთ, შეგიძლია იხილო რას ფიქრობენ შენს მახლობლად მცხოვრები ადამიანები<br>
@@ -161,7 +170,7 @@
                 
                 <div id="aggregateResults" class="results" style="display: none;">
                     <div class="dropdown-header" onclick="toggleDropdown('resultsDropdown')">
-                        <span>აგრეგირებული შედეგები</span>
+                        <span>კითხვარის შედეგები</span>
                         <span class="dropdown-arrow" id="resultsDropdownArrow">▼</span>
                     </div>
                     <div class="dropdown-content" id="resultsDropdown">
@@ -169,7 +178,7 @@
                     </div>
                 </div>
 
-                 <!-- Urban Environment Section -->
+                 <!-- Urban Environment Section 
                  <div id="urbanEnvironmentResults" class="results streetview-section">
                     <div class="dropdown-header" onclick="toggleDropdown('urbanEnvironmentDropdown')">
                         <span>ურბანული გარემო</span>
@@ -178,7 +187,7 @@
                     <div class="dropdown-content" id="urbanEnvironmentDropdown">
                         <div id="urbanEnvironmentContainer"></div>
                     </div>
-                </div>
+                </div>-->
                 
                 <div id="kindergartenResults" class="results" style="display: none;">
                     <div class="dropdown-header" onclick="toggleDropdown('kindergartenDropdown')">
@@ -190,10 +199,20 @@
                     </div>
                 </div>
 
+                <div id="schoolSummaryResults" class="results" style="display: none;">
+                    <div class="dropdown-header" onclick="toggleDropdown('schoolSummaryDropdown')">
+                        <span>სკოლის ინფრასტრუქტურა</span>
+                        <span class="dropdown-arrow" id="schoolSummaryDropdownArrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="schoolSummaryDropdown">
+                        <div id="schoolSummaryContent"></div>
+                    </div>
+                </div>
+
                 <!-- Add this after the kindergartenResults div -->
                 <div id="streetViewResults" class="results streetview-section">
                     <div class="dropdown-header" onclick="toggleDropdown('streetViewDropdown')">
-                        <span>Street View Images (<span id="streetViewCount">0</span>)</span>
+                        <span>როგორ გამოიყურება მიმდებარე გარემო</span>
                         <span class="dropdown-arrow" id="streetViewDropdownArrow">▼</span>
                     </div>
                     <div class="dropdown-content" id="streetViewDropdown">
@@ -203,16 +222,16 @@
 
                 <div id="accidentResults" class="results" style="display: none;">
                     <div class="dropdown-header" onclick="toggleDropdown('accidentDropdown')">
-                        <span>ავარიები არეალში (<span id="accidentCount">0</span>)</span>
+                        <span>საგზაო უსაფრთხოება</span>
                         <span class="dropdown-arrow" id="accidentDropdownArrow">▼</span>
                     </div>
                     <div class="dropdown-content" id="accidentDropdown">
-                        <div class="chart-container">
+                        <!--<div class="chart-container">
                             <h4>ავარიების კატეგორიები</h4>
                             <div class="chart-wrapper tiny">
                                 <canvas id="accidentCategoryChart"></canvas>
                             </div>
-                        </div>
+                        </div>-->
                         <div class="accident-list" id="accidentList"></div>
                     </div>
                 </div>
@@ -226,6 +245,7 @@
     <script src="streetview-2.js"></script>
     <script src="kidfriendliness.js"></script>
     <script src="draggable-divider.js"></script>
+    <script src="schoolsummary.js"></script>
 
     <script>
 
@@ -417,7 +437,6 @@
         // FUNCTION TO ANALYZE ACCIDENT DENSITY ALONG ROUTE SEGMENTS
 
         // Update the search input event listeners
-        // ============================================================
 // ============================================================
 // INTEGRATED SEARCH AND FACILITY MANAGEMENT
 // Supports both Kindergartens and Schools
@@ -521,6 +540,7 @@ searchInput.addEventListener('input', (e) => {
             name: f.properties.სკოლა,
             students: f.properties.students || 0,
             occupancy: f.properties.occupancy || 0,
+            condition: f.properties["შენობის მდგომარეობა"] || 0,
             lng: f.geometry.coordinates[0],
             lat: f.geometry.coordinates[1]
         }));
@@ -538,7 +558,7 @@ searchInput.addEventListener('input', (e) => {
         if (item.type === 'kindergarten') {
             return `
                 <div class="search-result-item" data-type="kindergarten" data-lng="${item.lng}" data-lat="${item.lat}">
-                    <div class="result-name">🎒 ${item.name}</div>
+                    <div class="result-name">${item.name}</div>
                     <div class="result-address">${item.address}</div>
                     ${item.phone ? `<div class="result-phone">${item.phone}</div>` : ''}
                 </div>
@@ -546,8 +566,8 @@ searchInput.addEventListener('input', (e) => {
         } else {
             return `
                 <div class="search-result-item" data-type="school" data-lng="${item.lng}" data-lat="${item.lat}">
-                    <div class="result-name">🏫 ${item.name}</div>
-                    <div class="result-address" style="font-size: 11px;">სკოლა • მოსწავლეები: ${item.students} • დატვირთულობა: ${item.occupancy}%</div>
+                    <div class="result-name">${item.name}</div>
+                    <div class="result-address" style="font-size: 11px;">მოსწავლეები: <b>${item.students}</b></div>
                 </div>
             `;
         }
@@ -591,7 +611,14 @@ document.addEventListener('click', (e) => {
 function displayKindergartenList(pointsInIsochrone) {
     const list = document.getElementById('kindergartenList');
     const count = document.getElementById('kindergartenCount');
+    const header = document.querySelector('#kindergartenResults .dropdown-header span:first-child');
+    
     count.textContent = pointsInIsochrone.length;
+    
+    // Update header text for kindergartens
+    if (header) {
+        header.innerHTML = `ბაგა-ბაღები (<span id="kindergartenCount">${pointsInIsochrone.length}</span>)`;
+    }
 
     if (pointsInIsochrone.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ბაგა-ბაღები არ მოიძებნა</p>';
@@ -707,7 +734,14 @@ function displayKindergartenList(pointsInIsochrone) {
 function displaySchoolList(schoolsInIsochrone) {
     const list = document.getElementById('kindergartenList');
     const count = document.getElementById('kindergartenCount');
+    const header = document.querySelector('#kindergartenResults .dropdown-header span:first-child');
+    
     count.textContent = schoolsInIsochrone.length;
+    
+    // Update header text for schools
+    if (header) {
+        header.innerHTML = `სკოლები (<span id="kindergartenCount">${schoolsInIsochrone.length}</span>)`;
+    }
 
     if (schoolsInIsochrone.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">სკოლები არ მოიძებნა</p>';
@@ -739,7 +773,7 @@ function displaySchoolList(schoolsInIsochrone) {
                 turf.point(feature.geometry.coordinates),
                 { units: 'meters' }
             );
-            distance = dist < 1000 ? `${Math.round(dist)}მ` : `${(dist/1000).toFixed(1)}კმ`;
+            distance = dist < 1000 ? `${Math.round(dist)} მ` : `${(dist/1000).toFixed(1)} კმ`;
         }
 
         let html = `<div class="kindergarten-item${isSelected ? ' selected' : ''}" 
@@ -748,21 +782,50 @@ function displaySchoolList(schoolsInIsochrone) {
                     data-name="${props.name || ''}"
                     style="border-left: 3px solid #1d91c0;">`;
 
-        html += `<h4>🏫 ${props.name || 'უსახელო სკოლა'}</h4>`;
+        html += `<h4>${props.name || 'უსახელო სკოლა'}</h4>`;
         
         if (distance) {
-            html += `<p>📍 ${distance} მოშორებით</p>`;
+            html += `<p>${distance} მოშორებით</p>`;
         }
         
         if (props.students > 0) {
-            html += `<p>👨‍🎓 მოსწავლეები: <strong>${props.students}</strong></p>`;
+            html += `<p>მოსწავლეები: <strong>${props.students}</strong></p>`;
         }
         
-        if (props.occupancy > 0) {
-            const occupancyColor = props.occupancy > 100 ? '#ef4444' : props.occupancy > 80 ? '#f59e0b' : '#22c55e';
-            html += `<p>📊 დატვირთულობა: <strong style="color: ${occupancyColor}">${props.occupancy}%</strong></p>`;
+        if (props.condition) {
+            let conditionColor, conditionLabel;
+
+            switch (props.condition.toLowerCase()) {
+                case 'ჩასანაცვლებელი':
+                    conditionColor = '#ef4444'; // red
+                    conditionLabel = 'ჩასანაცვლებელია';
+                    break;
+                case 'ცუდი':
+                    conditionColor = '#f97316'; // orange
+                    conditionLabel = 'მოძველებული ინფრასტრუქტურა';
+                    break;
+                case 'დამაკმაყოფილებელი':
+                    conditionColor = '#eab308'; // yellow
+                    conditionLabel = 'დამაკმაყოფილებელი';
+                    break;
+                case 'კარგი':
+                    conditionColor = '#22c55e'; // green
+                    conditionLabel = 'კეთილმოწყობილი';
+                    break;
+                default:
+                    conditionColor = '#9ca3af'; // gray
+                    conditionLabel = props.condition;
+            }
+
+            html += `<p>მდგომარეობა: <strong style="color: ${conditionColor}">${conditionLabel}</strong></p>`;
         }
 
+        if (props.occupancy > 0) {
+            const occupancyColor = props.occupancy > 100 ? '#ef4444' : props.occupancy > 80 ? '#f59e0b' : '#22c55e';
+            html += `<p>დატვირთულობა: <strong style="color: ${occupancyColor}">${props.occupancy}%</strong></p>`;
+        }
+
+        /*
         // Show costs if available
         const totalCost = (props.urgent_cost || 0) + (props.non_urg_cost || 0) + (props.long_cost || 0);
         if (totalCost > 0) {
@@ -772,7 +835,7 @@ function displaySchoolList(schoolsInIsochrone) {
             if (props.non_urg_cost > 0) html += `<div>• არასასწრაფო: ${(props.non_urg_cost/1000).toFixed(0)}ათ. ₾</div>`;
             if (props.long_cost > 0) html += `<div>• გრძელვადიანი: ${(props.long_cost/1000).toFixed(0)}ათ. ₾</div>`;
             html += `</div>`;
-        }
+        }*/
 
         html += '</div>';
         return html;
@@ -804,10 +867,10 @@ function displaySchoolList(schoolsInIsochrone) {
             currentHoveredFeatureName = feature.properties.name;
 
             map.setPaintProperty('isochrone-schools-layer', 'circle-radius', [
-                'case', ['==', ['get', 'name'], feature.properties.name], 10, 6
+                'case', ['==', ['get', 'name'], feature.properties.name], 6, 4
             ]);
             map.setPaintProperty('isochrone-schools-layer', 'circle-stroke-width', [
-                'case', ['==', ['get', 'name'], feature.properties.name], 3, 2
+                'case', ['==', ['get', 'name'], feature.properties.name]
             ]);
 
             let from;
@@ -861,7 +924,7 @@ function zoomToKindergarten(lngLat) {
     }
     
     const pulseElement = document.createElement('div');
-    pulseElement.className = 'pulsating-dot';
+    pulseElement.className = 'pulsating-dot-kindergarten';
     
     marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
         .setLngLat([lngLat.lng, lngLat.lat])
@@ -896,8 +959,7 @@ function zoomToSchool(lngLat) {
     }
     
     const pulseElement = document.createElement('div');
-    pulseElement.className = 'pulsating-dot';
-    pulseElement.style.backgroundColor = '#1d91c0';
+    pulseElement.className = 'pulsating-dot-school';
     
     marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
         .setLngLat([lngLat.lng, lngLat.lat])
@@ -968,6 +1030,7 @@ function filterSchoolsByIsochrone(isochronePolygon) {
                         name: feature.properties.სკოლა || '',
                         students: feature.properties.students || 0,
                         occupancy: feature.properties.occupancy || 0,
+                        condition: feature.properties["შენობის მდგომარეობა"] || 0,
                         urgent_cost: feature.properties.urgent_cost || 0,
                         non_urg_cost: feature.properties.non_urg_cost || 0,
                         long_cost: feature.properties.long_cost || 0
@@ -1016,10 +1079,11 @@ function updatePointsLayer(isochronePolygon) {
         }
         document.getElementById('kindergartenResults').style.display = 'none';
     }
-    
+
+    // Always update accidents layer regardless of facility type
     if (typeof updateAccidentsLayer === 'function') {
         updateAccidentsLayer(isochronePolygon);
-    }
+    } 
 }
 
 function updateSchoolsLayer(isochronePolygon) {
@@ -1036,19 +1100,23 @@ function updateSchoolsLayer(isochronePolygon) {
                 type: 'circle',
                 source: 'isochrone-schools',
                 paint: {
-                    'circle-radius': 6,
-                    'circle-color': '#1d91c0',
+                    'circle-radius': 5,
+                    'circle-color': '#b1e729',
                     'circle-opacity': 0.75,
-                    'circle-stroke-width': 2,
+                    'circle-stroke-width': 0.75,
                     'circle-stroke-color': '#ffffff',
-                    'circle-radius-transition': { duration: 300 },
-                    'circle-color-transition': { duration: 300 }
+                    'circle-radius-transition': { duration: 2000, delay: 3000 },
+                    'circle-color-transition': { duration: 2000, delay: 3000 }
                 }
             });
         }
         
         console.log('Schools in isochrone:', schoolsInIsochrone.length);
         displaySchoolList(schoolsInIsochrone);
+        // Add this at the end of updateSchoolsLayer when currentFacilityType === 'school'
+if (typeof integrateSchoolSummary === 'function') {
+    integrateSchoolSummary(schoolsInIsochrone);
+}
         document.getElementById('kindergartenResults').style.display = 'block';
     } else if (currentFacilityType === 'kindergarten') {
         // Hide schools when kindergarten is selected
@@ -1094,7 +1162,7 @@ function generateKindergartenIsochrone(lngLat) {
             if (marker) {
                 marker.remove();
                 const pulseElement = document.createElement('div');
-                pulseElement.className = 'pulsating-dot';
+                pulseElement.className = 'pulsating-dot-kindergarten';
                 marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
                     .setLngLat([lngLat.lng, lngLat.lat])
                     .addTo(map);
@@ -1145,8 +1213,7 @@ function generateSchoolIsochrone(lngLat) {
             if (marker) {
                 marker.remove();
                 const pulseElement = document.createElement('div');
-                pulseElement.className = 'pulsating-dot';
-                pulseElement.style.backgroundColor = '#1d91c0';
+                pulseElement.className = 'pulsating-dot-school';
                 marker = new mapboxgl.Marker({ element: pulseElement, anchor: 'center' })
                     .setLngLat([lngLat.lng, lngLat.lat])
                     .addTo(map);
@@ -1154,8 +1221,10 @@ function generateSchoolIsochrone(lngLat) {
 
             if (typeof aggregateResultsInIsochrone === 'function') {
                 const aggregated = aggregateResultsInIsochrone(isochroneFeature);
-                displayAggregatedResults(aggregated);
-                document.getElementById('aggregateResults').style.display = 'block';
+                if (typeof displayAggregatedResults === 'function') {
+                    displayAggregatedResults(aggregated);
+                    document.getElementById('aggregateResults').style.display = 'block';
+                }
             }
         })
         .catch(err => console.error('Isochrone error:', err));
@@ -1977,8 +2046,8 @@ document.getElementById('surveyForm').onsubmit = async (e) => {
                 paint: {
                     'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 1, 14, 2, 16, 4],
                     'circle-color': '#810f7c',
-                    'circle-opacity': 0.8,
-                    'circle-stroke-width': 2,
+                    'circle-opacity': 0.75,
+                    'circle-stroke-width': 0.75,
                     'circle-stroke-color': '#ffffff'
                 },
                 layout: { 'visibility': 'none' }

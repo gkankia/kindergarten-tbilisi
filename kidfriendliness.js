@@ -260,7 +260,7 @@ function generatePlaygroundDescription(playground, features, score, distance) {
 
 /**
  * Analyze all playgrounds and generate summary report
- */
+ 
 function analyzePlaygrounds(osmElements, pinCoords) {
     const playgrounds = [];
     
@@ -307,7 +307,7 @@ function analyzePlaygrounds(osmElements, pinCoords) {
     
     return playgrounds;
 }
-
+*/
 /**
  * Generate overall playground summary in Georgian
  */

@@ -49,63 +49,65 @@
             } else {
                 map.addSource('isochrone-accidents', { type: 'geojson', data: geoJSON });
                 
+                /*
                 // Add heatmap layer
-            //    map.addLayer({
-            //        id: 'isochrone-accidents-heatmap',
-            //        type: 'heatmap',
-            //        source: 'isochrone-accidents',
-            //        maxzoom: 17,
-            //        paint: {
+                map.addLayer({
+                    id: 'isochrone-accidents-heatmap',
+                    type: 'heatmap',
+                    source: 'isochrone-accidents',
+                    maxzoom: 17,
+                    paint: {
                         // Increase weight for injuries
-            //            'heatmap-weight': [
-            //                'interpolate',
-            //                ['linear'],
-            //                ['get', 'weight'],
-            //                0, 0,
-            //                2, 1
-            //            ],
-            //            // Increase intensity as zoom level increases
-            //            'heatmap-intensity': [
-            //                'interpolate',
-            //                ['linear'],
-            //                ['zoom'],
-            //                0, 1,
-            //                17, 3
-            //            ],
-            //            // Color ramp for heatmap
-            //            'heatmap-color': [
-            //                'interpolate',
-            //                ['linear'],
-            //                ['heatmap-density'],
-            //                0, 'rgba(242,240,247,0)',
-            //                0.2, 'rgb(218,218,235)',
-            //                0.4, 'rgb(188,189,220)',
-            //                0.6, 'rgb(158,154,200)',
-            //                0.8, 'rgb(117,107,177)',
-            //                1, 'rgb(84,39,143)'
-            //            ],
+                        'heatmap-weight': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'weight'],
+                            0, 0,
+                            2, 1
+                        ],
+                        // Increase intensity as zoom level increases
+                        'heatmap-intensity': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            0, 1,
+                            17, 3
+                        ],
+                        // Color ramp for heatmap
+                        'heatmap-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['heatmap-density'],
+                            0, 'rgba(242,240,247,0)',
+                            0.2, 'rgb(218,218,235)',
+                            0.4, 'rgb(188,189,220)',
+                            0.6, 'rgb(158,154,200)',
+                            0.8, 'rgb(117,107,177)',
+                            1, 'rgb(84,39,143)'
+                        ],
                         // Adjust the heatmap radius by zoom level
-            //            'heatmap-radius': [
-            //                'interpolate',
-            //                ['linear'],
-            //                ['zoom'],
-            //                0, 2,
-            //                15, 12
-            //            ],
+                        'heatmap-radius': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            0, 2,
+                            15, 12
+                        ],
                         // Transition from heatmap to circle layer by zoom level
-            //            'heatmap-opacity': [
-            //                'interpolate',
-            //                ['linear'],
-            //                ['zoom'],
-            //                12, .75,
-            //                22, 0
-            //            ]
-            //        }
-            //    }, 'waterway-label');
+                        'heatmap-opacity': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            12, .75,
+                            22, 0
+                        ]
+                    }
+                }, 'waterway-label');
+                */
                 
             }
             
-            //displayAccidentList(accidentsInIsochrone);
+            displayAccidentList(accidentsInIsochrone);
         }
 
         function filterAccidentsByIsochrone(isochronePolygon) {
@@ -128,8 +130,11 @@
 
         function displayAccidentList(accidents) {
             const list = document.getElementById('accidentList');
-            const count = document.getElementById('accidentCount');
-            count.textContent = accidents.length;
+            //const count = document.getElementById('accidentCount');
+            //count.textContent = accidents.length;
+            
+            // Show the accident results section
+            document.getElementById('accidentResults').style.display = 'block';
             
             if (accidents.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ავარიები არ მოიძებნა</p>';
@@ -143,6 +148,10 @@
                 categories[cat] = (categories[cat] || 0) + 1;
             });
             
+            // Calculate percentages
+            const severePercent = ((categories['მძიმე'] / accidents.length) * 100).toFixed(1);
+            const lightPercent = ((categories['მსუბუქი'] / accidents.length) * 100).toFixed(1);
+    
             // Ensure chartInstances object exists
             if (!window.chartInstances) window.chartInstances = {};
 
@@ -156,26 +165,6 @@
                     chartInstances.accidents.destroy();
                 }
 
-                // Reuse same chartConfig as genderChart
-                const chartConfig = {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '75%',
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: { font: { size: 10 } }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 8,
-                            titleFont: { size: 11 },
-                            bodyFont: { size: 10 }
-                        }
-                    }
-                };
-
                 chartInstances.accidents = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -185,12 +174,49 @@
                                 categories['მძიმე'] || 0, 
                                 categories['მსუბუქი'] || 0
                             ],
-                            backgroundColor: ['#a50f15', '#225ea8'],
+                            backgroundColor: ['#ef4444', '#fbbf24'],
                             borderWidth: 0
                         }]
                     },
-                    options: chartConfig
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '75%',
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: { font: { size: 10 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 8,
+                                titleFont: { size: 11 },
+                                bodyFont: { size: 10 }
+                            }
+                        }
+                    }
                 });
-
             }, 100);
+            
+            // Display accident list details
+            list.innerHTML = `
+                <div style="margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+                        <div style="background: #fef2f2; padding: 10px; border-radius: 5px; border-left: 3px solid #ef4444;">
+                            <div style="font-size: 11px; color: #991b1b;">მძიმე ავარიები</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #dc2626;">${categories['მძიმე'] || 0}</div>
+                            <div style="font-size: 12px; color: #ef4444; margin-top: 4px; font-weight: 600;">${severePercent}%</div>
+                        </div>
+                        <div style="background: #fffbeb; padding: 10px; border-radius: 5px; border-left: 3px solid #fbbf24;">
+                            <div style="font-size: 11px; color: #92400e;">მსუბუქი ავარიები</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${categories['მსუბუქი'] || 0}</div>
+                            <div style="font-size: 12px; color: #f59e0b; margin-top: 4px; font-weight: 600;">${lightPercent}%</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: #666; text-align: center; padding: 10px; background: #f8fafc; border-radius: 5px;">
+                        ჯამში <strong>${accidents.length}</strong> ავარია დაფიქსირდა ამ არეალში გასულ წელს
+                    </div>
+                </div>
+            `;
         }
