@@ -162,7 +162,7 @@ async function loadStreetViewForKindergarten(lngLat) {
     container.innerHTML = `
         <div class="loading-streetview">
             <div class="loading-spinner"></div>
-            <div style="font-size:16px; font-weight:600; margin-bottom:8px;">
+            <div style="font-size:12px; font-weight:600; margin-bottom:8px;">
                 იტვირთება ქუჩის ფოტოები...
             </div>
             <div style="font-size:12px; color:#666;">

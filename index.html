@@ -115,16 +115,17 @@
             
             <div id="surveyTab" class="tab-content active">
                 <div class="section">
-                    <p style="font-size: 16px; padding: 10px 0 0 0; text-align: left;">
-                        პლატფორმის გამოსაყენებლად, გაეცანი ინსტრუქციას
+                    <p style="font-size: 14px; padding: 10px 0 0 0; text-align: left;">
+                        გაეცანი ინსტრუქციას
                     </p>
                     <div class="dropdown-item" style="display: block;">
                         <ol class="instruction-list">
-                            <li>იპოვე სასურველი საჯარო სკოლა თუ ბაღი შენს სიახლოვეს</li>
+                            <li>პირველ რიგში, გთხოვთ შეავსო კითხვარი!</li>
+                            <li>ამისთვის, იპოვე სასურველი საჯარო სკოლა თუ ბაღი შენს სიახლოვეს</li>
                             <li>შეგიძლია გამოიყენო ავტომატური ნავიგაციის ღილაკიც</li>
                             <li>დააკლიკე ბაღის, სკოლის ან შენი ლოკაციის მანიშნებლის შესაბამის კვადრატზე</li>
                             <li>შეავსე კითხვარი და შეგვატყობინე, რამდენად უსაფრთხოა ეს გარემო, განსაკუთრებით ბავშვებისთვის</li>
-                            <li>გაეცანი შეჯამებულ ანალიზს</li>
+                            <li>გადართე შედეგების პანელზე და გაეცანი შეჯამებულ ანალიზსსა და სხვა მნიშვნელოვან ინფორმაციას</li>
                         </ol>
                     </div>
                 </div>
@@ -132,21 +133,16 @@
             
             <div id="resultsTab" class="tab-content">
                 <div class="section">
-                    <button class="dropdown-toggle">ინსტრუქცია ანალიზისთვის ▼</button>
+                    <button class="dropdown-toggle">ანალიზის პანელი ▼</button>
                     <div class="dropdown-item">
-                        <ol class="instruction-list">
-                            <li>შეგიძლია შეცვალო ანალიზის არეალი გადაადგილების დროისა და ფორმის მიხედვით</li>
-                            <li>ანალიზის პანელში იხილავ შეჯამებულ ანალიზს</li>
-                            <li></li>
-                            <li></li>
-                            <li>გაეცანი შეჯამებულ ანალიზს</li>
-                        </ol>
-                        <p style="font-size: 12px; line-height: 1.6;">
-                            • ანალიზის არეალი შეგიძლია აკონტროლო გადაადგილების დროისა და ფორმის მიხედვით<br>
-                            • ქვემოთ, შეგიძლია იხილო რას ფიქრობენ შენს მახლობლად მცხოვრები ადამიანები<br>
-                            • ჩამონათვალში ნახავ გეოგრაფიულად უახლოეს სასწავლო დაწესებულებებს<br>
-                            • კონკრეტულ დაწესებულებაზე მაუსის გადატარებით, იხილავ მასთან მისასვლელ მარშრუტს<br>
-                            • რუკის მარჯვენა კუთხეში, იხილავ, რამდენად უსაფრთხოა ეს მარშრუტი სკოლაში ან ბაღში მისასვლელად
+                        <p style="font-size: 12px; line-height: 1.8;">
+                            • შეგიძლია შეცვალო გადაადგილების დრო და ფორმა<br>
+                            • თემატურად აგრეგირებული ინფორმაცია<br>
+                            • გეოგრაფიული სიახლოვით გაფილტრული მონაცემები<br>
+                            • მარშრუტების შეფასება უსაფრთხოების მიხედვით<br>
+                            • სკოლის ინფრასტრუქტურის შეფასება<br>
+                            • მიმდებარე ურბანული გარემოს ვიზუალური მასალა<br>
+                            • საგზაო უსაფრთხოების ანალიზი
                         </p>
                     </div>
                 </div>
@@ -160,7 +156,7 @@
                         <option value="25">25</option>
                         <!--<option value="30">30</option>-->
                     </select>
-                    
+                    <br>
                     <label class="travel-mode" style="margin-top: 12px;">გადაადგილების ფორმა</label>
                     <div class="toggle-group">
                         <div class="toggle active" data-mode="walking" onclick="setResultsMode('walking')">ფეხით<br><span class="material-symbols-outlined">footprint</span></div>
@@ -201,7 +197,7 @@
 
                 <div id="schoolSummaryResults" class="results" style="display: none;">
                     <div class="dropdown-header" onclick="toggleDropdown('schoolSummaryDropdown')">
-                        <span>სკოლის ინფრასტრუქტურა</span>
+                        <span>სკოლის ინფრასტრუქტურის შეფასება</span>
                         <span class="dropdown-arrow" id="schoolSummaryDropdownArrow">▼</span>
                     </div>
                     <div class="dropdown-content" id="schoolSummaryDropdown">
@@ -242,8 +238,8 @@
     <script src="questionnaires.js"></script>
     <script src="load-accidents.js"></script>
     <script src="route-generation-analysis.js"></script>
-    <script src="streetview-2.js"></script>
-    <script src="kidfriendliness.js"></script>
+    <script src="streetview.js"></script>
+    <!--<script src="kidfriendliness.js"></script>-->
     <script src="draggable-divider.js"></script>
     <script src="schoolsummary.js"></script>
 
@@ -744,7 +740,7 @@ function displaySchoolList(schoolsInIsochrone) {
     }
 
     if (schoolsInIsochrone.length === 0) {
-        list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">სკოლები არ მოიძებნა</p>';
+        list.innerHTML = '<p style="text-align: center; font-size: 12px; color: #999; padding: 20px;">სკოლები არ მოიძებნა</p>';
         return;
     }
 
@@ -1033,7 +1029,10 @@ function filterSchoolsByIsochrone(isochronePolygon) {
                         condition: feature.properties["შენობის მდგომარეობა"] || 0,
                         urgent_cost: feature.properties.urgent_cost || 0,
                         non_urg_cost: feature.properties.non_urg_cost || 0,
-                        long_cost: feature.properties.long_cost || 0
+                        long_cost: feature.properties.long_cost || 0,
+                        'Ramp': feature.properties['Ramp'] || 'NA',
+                        'Adapted elevator': feature.properties['Adapted elevator'] || 'NA',
+                        'Adapted WC': feature.properties['Adapted WC'] || 'NA'
                     }
                 });
             }
@@ -1072,6 +1071,10 @@ function updatePointsLayer(isochronePolygon) {
         
         displayKindergartenList(pointsInIsochrone);
         document.getElementById('kindergartenResults').style.display = 'block';
+
+        // Hide school summary when kindergarten is selected
+        document.getElementById('schoolSummaryResults').style.display = 'none';
+
     } else if (currentFacilityType === 'school') {
         // Hide kindergarten points when school is selected
         if (map.getSource('isochrone-points')) {
@@ -1113,20 +1116,47 @@ function updateSchoolsLayer(isochronePolygon) {
         
         console.log('Schools in isochrone:', schoolsInIsochrone.length);
         displaySchoolList(schoolsInIsochrone);
-        // Add this at the end of updateSchoolsLayer when currentFacilityType === 'school'
-if (typeof integrateSchoolSummary === 'function') {
-    integrateSchoolSummary(schoolsInIsochrone);
-}
+        
+        if (typeof integrateSchoolSummary === 'function') {
+            integrateSchoolSummary(schoolsInIsochrone);
+        }
         document.getElementById('kindergartenResults').style.display = 'block';
-    } else if (currentFacilityType === 'kindergarten') {
+
+        // Show school summary when school is selected
+        document.getElementById('schoolSummaryResults').style.display = 'block';
+
+        } else if (currentFacilityType === 'kindergarten') {
+
         // Hide schools when kindergarten is selected
         if (map.getSource('isochrone-schools')) {
             map.getSource('isochrone-schools').setData({ type: 'FeatureCollection', features: [] });
         }
+        // Hide school summary when kindergarten is selected
+        document.getElementById('schoolSummaryResults').style.display = 'none';
     }
 }
 
 function generateKindergartenIsochrone(lngLat) {
+
+    // Remove any existing routes when generating new isochrone
+    ['route-line', 'temp-route-line'].forEach(routeId => {
+        const coloredLayerId = `${routeId}-colored`;
+        const outlineLayerId = `${routeId}-colored-outline`;
+        const segmentSourceId = `${routeId}-segments`;
+        
+        if (map.getLayer(`${outlineLayerId}-glow-outer`)) map.removeLayer(`${outlineLayerId}-glow-outer`);
+        if (map.getLayer(`${outlineLayerId}-glow-middle`)) map.removeLayer(`${outlineLayerId}-glow-middle`);
+        if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
+        if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
+        if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
+    });
+    
+    // Remove route popup if exists
+    const routePopup = document.getElementById('routePopup');
+    if (routePopup) {
+        routePopup.remove();
+    }
+
     const time = 15;
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
 
@@ -1178,6 +1208,26 @@ function generateKindergartenIsochrone(lngLat) {
 }
 
 function generateSchoolIsochrone(lngLat) {
+
+    // Remove any existing routes when generating new isochrone
+    ['route-line', 'temp-route-line'].forEach(routeId => {
+        const coloredLayerId = `${routeId}-colored`;
+        const outlineLayerId = `${routeId}-colored-outline`;
+        const segmentSourceId = `${routeId}-segments`;
+        
+        if (map.getLayer(`${outlineLayerId}-glow-outer`)) map.removeLayer(`${outlineLayerId}-glow-outer`);
+        if (map.getLayer(`${outlineLayerId}-glow-middle`)) map.removeLayer(`${outlineLayerId}-glow-middle`);
+        if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
+        if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
+        if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
+    });
+    
+    // Remove route popup if exists
+    const routePopup = document.getElementById('routePopup');
+    if (routePopup) {
+        routePopup.remove();
+    }
+
     const time = 15;
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/walking/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
 
@@ -1331,6 +1381,26 @@ function setResultsMode(mode) {
 }
 
 function generateKindergartenIsochroneWithMode(lngLat, mode) {
+
+    // Remove any existing routes when generating new isochrone
+    ['route-line', 'temp-route-line'].forEach(routeId => {
+        const coloredLayerId = `${routeId}-colored`;
+        const outlineLayerId = `${routeId}-colored-outline`;
+        const segmentSourceId = `${routeId}-segments`;
+        
+        if (map.getLayer(`${outlineLayerId}-glow-outer`)) map.removeLayer(`${outlineLayerId}-glow-outer`);
+        if (map.getLayer(`${outlineLayerId}-glow-middle`)) map.removeLayer(`${outlineLayerId}-glow-middle`);
+        if (map.getLayer(coloredLayerId)) map.removeLayer(coloredLayerId);
+        if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
+        if (map.getSource(segmentSourceId)) map.removeSource(segmentSourceId);
+    });
+    
+    // Remove route popup if exists
+    const routePopup = document.getElementById('routePopup');
+    if (routePopup) {
+        routePopup.remove();
+    }
+
     const time = document.getElementById('timeResults').value;
     console.log('Generating isochrone with time:', time, 'mode:', mode);
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${lngLat.lng},${lngLat.lat}?contours_minutes=${time}&polygons=true&access_token=${mapboxgl.accessToken}`;
@@ -1417,7 +1487,7 @@ function generateKindergartenIsochroneWithMode(lngLat, mode) {
 
         function displayAggregatedResults(data) {
             if (data.total === 0) {
-                document.getElementById('aggregateContent').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">ამ არეალში მონაცემები არ არის</p>';
+                document.getElementById('aggregateContent').innerHTML = '<p style="text-align: center; font-size: 12px; color: #999; padding: 20px;">ამ არეალში მონაცემები არ არის</p>';
                 return;
             }
             
