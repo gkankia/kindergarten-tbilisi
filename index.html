@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
  
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,9 +97,20 @@
                 <input type="text" id="kindergartenSearch" placeholder="მოძებნე: ბაღი, სკოლა ან მისამართი..." />
                 <div class="search-results" id="searchResults"></div>
             </div>
+
+            <!-- Action Buttons on Map -->
+            <div class="map-action-buttons" style="position: absolute; top: 50%; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 5px;">
+                <button class="map-action-btn" onclick="openDataSourcePopup()" style="width: 29px; height: 29px; color: white; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="მონაცემთა წყაროები">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #810f7c;">database</span>
+                </button>
+                <button class="map-action-btn" onclick="openFeedbackPopup()" style="width: 29px; height: 29px; color: white; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="უკუკავშირი">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #810f7c;">feedback</span>
+                </button>
+            </div>
             
             <footer>
                 <div class="zaxis">
+                    <p>built with care by</p>
                     <a href="https://zaxis.ge"><img src="https://raw.githubusercontent.com/axis-Z/urbanyxv1/refs/heads/main/img/white-transparent-background.png" alt="" width="75"></a>
                 </div>
             </footer>
@@ -236,6 +248,7 @@
     </div>
 
     <script src="questionnaires.js"></script>
+    <script src="data-feedback.js"></script>
     <script src="load-accidents.js"></script>
     <script src="route-generation-analysis.js"></script>
     <script src="streetview.js"></script>
@@ -245,13 +258,16 @@
 
     <script>
 
-        // Add at the top of your script
+        // Initialize survey submission tracking
         let userHasSubmittedSurvey = false;
 
+        // Function to enable results tab
         function enableResultsTab() {
-            const resultsBtn = document.getElementById('resultsTabBtn');
-            if (resultsBtn) {
-                resultsBtn.classList.remove('disabled');
+            const resultsTabBtn = document.getElementById('resultsTabBtn');
+            if (resultsTabBtn) {
+                resultsTabBtn.classList.remove('disabled');
+                resultsTabBtn.removeAttribute('data-tooltip');
+                console.log('Results tab enabled');
             }
         }
 
@@ -283,7 +299,7 @@
             style: 'mapbox://styles/jorjone90/cmd1cg82i000101s61qwaca16',
             center: [44.800, 41.7350],
             zoom: 12,
-            attributionControl: true,
+            attributionControl: false,
             preserveDrawingBuffer: true
         });
 
@@ -1831,6 +1847,9 @@ document.getElementById('surveyForm').onsubmit = async (e) => {
     e.preventDefault();
 
     const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
     const formData = new FormData(form);
     const cellId = currentFeature.properties.cellId;
     const center = getCellCenter(cellId);
@@ -1895,79 +1914,98 @@ document.getElementById('surveyForm').onsubmit = async (e) => {
 
     // === VALIDATION END ===
 
-    // Continue only if everything is valid
-    const reasons = Array.from(document.querySelectorAll('input[name="reason"]:checked'))
-        .map(cb => (cb.value === 'other_reason' ? (reasonText.value || '') : cb.value))
-        .filter(v => v);
-
-    const priorities = Array.from(document.querySelectorAll('input[name="priority"]:checked'))
-        .map(cb => (cb.value === 'other_priority' ? (priorityText.value || '') : cb.value))
-        .filter(v => v);
-
-    const response = {
-        timestamp: new Date().toISOString(),
-        gridName,
-        cellId,
-        lat: center[1],
-        lng: center[0],
-        age: formData.get('age'),
-        gender: formData.get('gender'),
-        safety: formData.get('safety'),
-        reason: reasons.join('; '),
-        priority: priorities.join('; ')
-    };
-
-    console.log('Response object:', response);
-
-    let feature = surveyDataGeoJSON.features.find(f => f.properties.gridName === gridName);
-    if (!feature) {
-        feature = {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: center },
-            properties: { gridName, cellId, responses: [] }
-        };
-        surveyDataGeoJSON.features.push(feature);
-    }
-
-    feature.properties.responses.push({
-        timestamp: response.timestamp,
-        age: response.age,
-        gender: response.gender,
-        safety: response.safety,
-        reason: response.reason,
-        priority: response.priority
-    });
-
-    if (map.getSource('survey-data')) map.getSource('survey-data').setData(surveyDataGeoJSON);
+    // Change button state before submission
+    submitBtn.textContent = 'იგზავნება...';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'not-allowed';
 
     try {
-        const result = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(response)
+        // Continue only if everything is valid
+        const reasons = Array.from(document.querySelectorAll('input[name="reason"]:checked'))
+            .map(cb => (cb.value === 'other_reason' ? (reasonText.value || '') : cb.value))
+            .filter(v => v);
+
+        const priorities = Array.from(document.querySelectorAll('input[name="priority"]:checked'))
+            .map(cb => (cb.value === 'other_priority' ? (priorityText.value || '') : cb.value))
+            .filter(v => v);
+
+        const response = {
+            timestamp: new Date().toISOString(),
+            gridName,
+            cellId,
+            lat: center[1],
+            lng: center[0],
+            age: formData.get('age'),
+            gender: formData.get('gender'),
+            safety: formData.get('safety'),
+            reason: reasons.join('; '),
+            priority: priorities.join('; ')
+        };
+
+        console.log('Response object:', response);
+
+        let feature = surveyDataGeoJSON.features.find(f => f.properties.gridName === gridName);
+        if (!feature) {
+            feature = {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: center },
+                properties: { gridName, cellId, responses: [] }
+            };
+            surveyDataGeoJSON.features.push(feature);
+        }
+
+        feature.properties.responses.push({
+            timestamp: response.timestamp,
+            age: response.age,
+            gender: response.gender,
+            safety: response.safety,
+            reason: response.reason,
+            priority: response.priority
         });
-        const resultData = await result.json();
-        console.log('Google Sheets response:', resultData);
-    } catch (err) {
-        console.error('Failed to send to Google Sheets:', err);
-    }
 
-    alert('მადლობა! თქვენი პასუხი შენახულია.');
-    modal.style.display = 'none';
-    form.reset();
-    reasonText.style.display = 'none';
-    priorityText.style.display = 'none';
+        if (map.getSource('survey-data')) map.getSource('survey-data').setData(surveyDataGeoJSON);
 
-    // Clear highlighted grid
-    if (map.getSource('highlighted-grid')) {
-        map.getSource('highlighted-grid').setData({ type: 'FeatureCollection', features: [] });
-    }
+        try {
+            const result = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(response)
+            });
+            const resultData = await result.json();
+            console.log('Google Sheets response:', resultData);
+        } catch (err) {
+            console.error('Failed to send to Google Sheets:', err);
+        }
 
-    updateGridLayer();
-    
-    // Enable results tab after user submits their first response
-    if (!userHasSubmittedSurvey) {
-        userHasSubmittedSurvey = true;
-        enableResultsTab();
+        alert('მადლობა! თქვენი პასუხი შენახულია.');
+        modal.style.display = 'none';
+        form.reset();
+        reasonText.style.display = 'none';
+        priorityText.style.display = 'none';
+
+        // Clear highlighted grid
+        if (map.getSource('highlighted-grid')) {
+            map.getSource('highlighted-grid').setData({ type: 'FeatureCollection', features: [] });
+        }
+
+        updateGridLayer();
+        
+        // Enable results tab after user submits their first response
+        if (!userHasSubmittedSurvey) {
+            userHasSubmittedSurvey = true;
+            enableResultsTab();
+            console.log('First survey submitted - results tab should be enabled');
+        }
+        
+    } catch (error) {
+        console.error('Survey submission error:', error);
+        alert('შეცდომა. გთხოვთ სცადოთ თავიდან.');
+    } finally {
+        // Restore button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
     }
 };
         

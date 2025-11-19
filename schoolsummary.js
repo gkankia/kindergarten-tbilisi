@@ -1102,10 +1102,10 @@ function createTrivariateVisualization(summary) {
     return `
       <div class="summary-section">
         <h4 style="margin: 15px 0; color: #666666; padding: 10px 0;">
-          ანალიზის შეჯამება
+          შემაჯამებელი ანალიზი
         </h4>
         <div class="insights-list">
-          <div class="insight-item" style="line-height: 1.8; text-align: justify;">
+          <div class="insight-item">
             ${narrative}
           </div>
         </div>
@@ -1197,7 +1197,7 @@ function buildMainChallenges(crowdingSeverity, conditionSeverity, accessibilityS
   
   // Combine crowding and condition if both are problematic
   if (crowdingSeverity === 'critical' && conditionSeverity === 'critical') {
-    text += `გადატვირთულობის კრიტიკულ ზღვარს ემატება შენობების მძიმე მდგომარეობა - სკოლების <strong>${poorConditionPercent}%</strong> საჭიროებს სრულყოფილ რეაბილიტაციას`;
+    text += `გადატვირთულობის კრიტიკულ ზღვარს ემატება შენობების მძიმე მდგომარეობა - ${poorConditionTotal} სკოლა საჭიროებს სრულყოფილ რეაბილიტაციას`;
     if (needsReplacement > 0) {
       text += `, მათ შორის ${needsReplacement} სკოლა სრულ ჩანაცვლებას`;
     }
@@ -1206,7 +1206,7 @@ function buildMainChallenges(crowdingSeverity, conditionSeverity, accessibilityS
     text += `<strong>${overcrowdedTotal} სკოლის</strong> მნიშვნელოვან გადატვირთულობას. `;
     
     if (conditionSeverity === 'critical' || conditionSeverity === 'high') {
-      text += `ამას ემატება ინფრასტრუქტურის პრობლემები - ${poorConditionTotal}% სკოლა საჭიროებს რეაბილიტაციას`;
+      text += `ამას ემატება ინფრასტრუქტურული პრობლემები - ${poorConditionTotal} სკოლა საჭიროებს რეაბილიტაციას`;
       if (needsReplacement > 0) {
         text += `, ${needsReplacement} მათგანი კი სრულ ჩანაცვლებას`;
       }
@@ -1216,9 +1216,9 @@ function buildMainChallenges(crowdingSeverity, conditionSeverity, accessibilityS
     }
   } else if (crowdingSeverity === 'moderate') {
     if (conditionSeverity === 'critical' || conditionSeverity === 'high') {
-      text += `მართალია, გადატვირთულობა შედარებით შეზღუდულია, მაგრამ ინფრასტრუქტურის მდგომარეობა საგანგაშოა - ${poorConditionTotal} სკოლა საჭიროებს რეაბილიტაციას. `;
+      text += `მართალია, გადატვირთულობა შედარებით შეზღუდულია, მაგრამ ინფრასტრუქტურის მდგომარეობა საყურადღებოა - ${poorConditionTotal} სკოლა საჭიროებს რეაბილიტაციას. `;
     } else {
-      text += `გადატვირთულობის და ინფრასტრუქტურის პრობლემები შედარებით შეზღუდულია. `;
+      text += `გადატვირთულობის და ინფრასტრუქტურის პრობლემები შედარებით ნაკლებად მწვავედ დგას. `;
     }
   } else {
     // No crowding issues
@@ -1250,19 +1250,19 @@ function buildAccessibilityInContext(accessibilitySeverity, accessScore, conditi
     
     case 'moderate':
       if (conditionSeverity === 'critical' || conditionSeverity === 'high') {
-        return `<br>ამას ემატება ფიზიკური მისაწვდომობის პრობლემა (<strong>${accessScore}%</strong>) - მნიშვნელოვანი ნაწილი სკოლებისა არაადეკვატურად არის აღჭურვილი პანდუსებით, ლიფტებითა და ადაპტირებული საპირფარეშოებით. `;
+        return `<br>ამას ემატება ფიზიკური მისაწვდომობის პრობლემა. სკოლების მნიშვნელოვანი ნაწილი არ არის აღჭურვილი ადაპტირებული პანდუსებით, ლიფტებითა და საპირფარეშოებით. `;
       } else {
-        return `თუმცა, ფიზიკური მისაწვდომობის თვალსაზრისით სურათი არათანაბარია. საჭიროა მნიშვნელოვანი ინვესტიციები ფიზიკურად ინკლუზიური გარემოს შესაქმნელად. `;
+        return `თუმცა, მისაწვდომობის თვალსაზრისით სურათი არათანაბარია. საჭიროა მნიშვნელოვანი ინვესტიციები ფიზიკურად ინკლუზიური გარემოს შესაქმნელად. `;
       }
     
     case 'poor':
-      return `<br>განსაკუთრებით პრობლემურია ფიზიკური მისაწვდომობის საკითხი სკოლების უმრავლესობას არ აქვს ადეკვატური ინფრასტრუქტურა შეზღუდული შესაძლებლობის მქონე მოსწავლეებისთვის, რაც სერიოზულ დაბრკოლებას ქმნის თანასწორი განათლების უზრუნველსაყოფად. `;
+      return `<br>განსაკუთრებით პრობლემურია ფიზიკური მისაწვდომობის საკითხი, რადგან სკოლების უმრავლესობა არ არის ადაპტირებული შეზღუდული შესაძლებლობის მქონე მოსწავლეებისთვის. ეს სერიოზული გამოწვევაა განათლებაზე თანასწორი ხელმისაწვდომობის კუთხით. `;
     
     case 'critical':
-      return `<br>უაღრესად პრობლემურია ფიზიკური მისაწვდომობის საკითხი. მოცემულ არეალში არსებული სკოლების უმეტესობა მიუწვდომელია შეზღუდული მობილობის მქონე მოსწავლეთათვის. საჭიროა დაუყოვნებელი და მასშტაბური ჩარევა ინკლუზიური გარემოს შესაქმნელად. `;
+      return `<br>უაღრესად პრობლემურია ფიზიკური მისაწვდომობის საკითხი. მოცემულ არეალში არსებული სკოლების უმეტესობა მიუწვდომელია შეზღუდული მობილობის მქონე მოსწავლეთათვის. საჭიროა დაუყოვნებელი და მასშტაბური ინფრასტრუქტურული ჩარევა ინკლუზიური გარემოს შესაქმნელად. `;
     
     default:
-      return `<br>კრიტიკულია ფიზიკური მისაწვდომობის სიტუაცია - არცერთ სკოლას არ აქვს ისეთი საბაზისო ელემენტები, როგორებიცაა პანდუსები, ლიფტები თუ ადაპტირებული საპირფარეშოები. აუცილებელია ამ ინფრასტრუქტურის სრული შექმნა. `;
+      return `<br>მისაწვდომობის კუთხით, სიტუაცია განსაკუთრებულად კრიტიკულია. არცერთ სკოლას არ აქვს ისეთი ადაპტირებული ინფრასტრუქტურის ისეთი საბაზისო ელემენტები, როგორებიცაა პანდუსები, ლიფტები თუ საპირფარეშოები. აუცილებელია ამ ინფრასტრუქტურის სრულყოფილად შექმნა, რათა მოსწავლეებმა მიიღონ თანაბარი წვდომა განათლებაზე. `;
   }
 }
 
@@ -1284,7 +1284,7 @@ function buildInvestmentContext(summary, crowdingSeverity, conditionSeverity, ac
     .filter(s => s === 'critical').length;
   
   if (criticalFactors >= 2) {
-    text += `აღნიშნული კრიტიკული პრობლემების მოსაგვარებლად `;
+    text += `ამ საკითხების მოსაგვარებლად `;
   } else if (crowdingSeverity === 'critical' || conditionSeverity === 'critical') {
     text += `ამ მძიმე სიტუაციის გამოსასწორებლად `;
   } else {
@@ -1311,7 +1311,7 @@ function buildInvestmentContext(summary, crowdingSeverity, conditionSeverity, ac
  */
 function buildRecommendations(crowdingSeverity, conditionSeverity, accessibilitySeverity,
                              overcrowdedPercent, poorConditionPercent, needsReplacement) {
-  let text = '<br><strong><u>';
+  let text = '<br>';
   
   // Determine recommendation type
   const severityScore = 
@@ -1320,7 +1320,7 @@ function buildRecommendations(crowdingSeverity, conditionSeverity, accessibility
     (accessibilitySeverity === 'critical' ? 3 : accessibilitySeverity === 'poor' ? 2 : accessibilitySeverity === 'moderate' ? 1 : 0);
   
   if (severityScore >= 7) {
-    text += 'გადაუდებელი ჩარევა აუცილებელია:</u></strong> ';
+    text += 'აუცილებელია ';
     
     let actions = [];
     if (crowdingSeverity === 'critical') actions.push('ახალი სკოლების მშენებლობა');
@@ -1331,13 +1331,13 @@ function buildRecommendations(crowdingSeverity, conditionSeverity, accessibility
       actions.push('მასშტაბური რეაბილიტაცია');
     }
     if (accessibilitySeverity === 'critical' || accessibilitySeverity === 'poor') {
-      actions.push('ინკლუზიური ინფრასტრუქტურის სრული განახლება');
+      actions.push('ინფრასტრუქტურის სრული განახლება');
     }
     
     text += actions.join(', ') + ' - ეს ნაბიჯები აუცილებელია ქალაქის ამ ნაწილში ხარისხიანი და თანასწორი სასკოლო განათლების უზრუნველსაყოფად.';
     
   } else if (severityScore >= 4) {
-    text += 'რეკომენდაცია:</u></strong> ';
+    text += 'მთავარი რეკომენდაცია - ';
     
     let priorities = [];
     if (crowdingSeverity === 'critical' || crowdingSeverity === 'high') {
@@ -1353,22 +1353,22 @@ function buildRecommendations(crowdingSeverity, conditionSeverity, accessibility
     text += priorities.join(', ასევე ') + '.';
     
   } else if (severityScore > 0) {
-    text += 'რეკომენდაცია:</u></strong> ';
+    text += 'ძირითადი რეკომენდაცია - ';
     text += 'იდენტიფიცირებული ხარვეზების აღმოსაფხვრელად საჭიროა მიზანმიმართული საინვესტიციო პროგრამის შემუშავება, ';
     
     if (conditionSeverity === 'moderate') text += 'რომელიც უზრუნველყოფს შენობების ხარისხიან რეაბილიტაციას';
     if (accessibilitySeverity === 'moderate') {
       if (conditionSeverity === 'moderate') text += ' და ';
-      text += 'ინკლუზიური ინფრასტრუქტურის გაუმჯობესებას';
+      text += 'ინკლუზიური ინფრასტრუქტურის გაუმჯობესებას ';
     }
     text += '.';
     
   } else {
-    text += 'დასკვნა:</u></strong> ';
-    text += 'არეალში სკოლების ზოგადი მდგომარეობა დამაკმაყოფილებელია. ';
+    text += 'დასკვნის სახით, შეგვიძლია აღვნიშნოთ, რომ ';
+    text += 'ამ არეალში სკოლების ზოგადი მდგომარეობა დამაკმაყოფილებელია. ';
     
     if (accessibilitySeverity === 'good' || accessibilitySeverity === 'excellent') {
-      text += 'აღსანიშნავია ინკლუზიური გარემოს მაღალი ხარისხი. ';
+      text += 'ეს არეალი განსაკუთრებულად მაღალი ინკლუზიურობით გამოირჩევა. ';
     }
     
     text += 'რეკომენდირებულია ხარისხიანი მოვლა-პატრონობა და მიმდინარე გაუმჯობესებები ოპტიმალური სასწავლო გარემოს შესანარჩუნებლად.';

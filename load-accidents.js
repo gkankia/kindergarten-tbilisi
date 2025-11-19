@@ -203,16 +203,16 @@
             list.innerHTML = `
                 <div style="margin-top: 10px;">
                     <div style="font-size: 12px; color: #64748b; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        ამ არეალში, სულ <strong>${accidents.length}</strong> ავარია დაფიქსირდა (2021-2022 წლებში).
+                        ამ არეალში, სულ <strong>${accidents.length}</strong> ავტოსაგზაო შემთხვევა დაფიქსირდა (2021-2022 წლებში).
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
                         <div style="background: linear-gradient(to right, #fffbeb 0%, rgba(255, 251, 235, 0) 100%); padding: 10px; border-radius: 0 5px 5px 0; border-left: 3px solid #fbbf24;">
-                            <div style="font-size: 14px; color: #92400e;">მსუბუქი ავარიები</div>
+                            <div style="font-size: 14px; color: #92400e;">მსუბუქი</div>
                             <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${categories['მსუბუქი'] || 0}</div>
                             <div style="font-size: 12px; color: #f59e0b; margin-top: 4px; font-weight: 600;">${lightPercent}%</div>
                         </div>
                         <div style="background: linear-gradient(to right, #fef2f2 0%, rgba(255, 251, 235, 0) 100%); padding: 10px; border-radius: 0 5px 5px 0; border-left: 3px solid #ef4444;">
-                            <div style="font-size: 14px; color: #991b1b;">მძიმე ავარიები</div>
+                            <div style="font-size: 14px; color: #991b1b;">სხეულის დაზიანებით</div>
                             <div style="font-size: 24px; font-weight: bold; color: #dc2626;">${categories['მძიმე'] || 0}</div>
                             <div style="font-size: 12px; color: #ef4444; margin-top: 4px; font-weight: 600;">${severePercent}%</div>
                         </div>
