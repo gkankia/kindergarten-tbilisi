@@ -548,9 +548,13 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 
 /* DATA & FEEDBACK BUTTONS */
 
+.map-action-btn {
+    background: #ffffff;
+    border: none;
+}
+
 .map-action-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    background: #f2f2f2;
 }
 
 .info-popup {
@@ -582,16 +586,12 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 .info-popup-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #e5e7eb;
 }
 
-.info-popup-title h2{
-    align-items: center;
-    text-align: center;
-    color: #810f7c;
+.info-popup-header h2{
+    color: #333333;
 }
 
 .info-popup-close {

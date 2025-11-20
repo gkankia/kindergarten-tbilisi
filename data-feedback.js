@@ -10,8 +10,7 @@ function openDataSourcePopup() {
     popup.innerHTML = `
         <div class="info-popup-header">
             <div class="info-popup-title">
-                <h2><span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px; color: #810f7c;">database</span>
-                მონაცემები</h2>
+                <h2>მონაცემები</h2>
             </div>
             <button class="info-popup-close" onclick="closeInfoPopup()">×</button>
         </div>
@@ -74,8 +73,7 @@ function openFeedbackPopup() {
     popup.innerHTML = `
         <div class="info-popup-header">
             <div class="info-popup-title">
-                <h2> <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px; color: #810f7c;">feedback</span>
-                უკუკავშირი</h2>
+                <h2>უკუკავშირი</h2>
             </div>
             <button class="info-popup-close" onclick="closeInfoPopup()">×</button>
         </div>
