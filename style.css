@@ -660,21 +660,21 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 
 .icon-panel {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255,255,255,0.9);
-    padding: 6px;
+    top: 50%;    
+    left: 10px;
+    padding: 10px;
+    background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 15px;
     z-index: 999;
 }
 
 .share-btn {
-    width: 36px;
-    height: 36px;
+    width: 20px;
+    height: 20px;
     border: none;
     background: none;
     cursor: pointer;
@@ -685,13 +685,13 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
 }
 
 .share-btn img {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     transition: transform 0.2s;
 }
 
 .share-btn:hover img {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 #copyMessage {
