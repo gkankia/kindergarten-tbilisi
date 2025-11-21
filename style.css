@@ -656,6 +656,52 @@ button.send:hover { background: #f4f4f4; box-shadow: 4px 4px 0 #810f7c; transfor
     text-decoration: underline;
 }
 
+/* SHARE BUTTON */
+
+.icon-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 999;
+}
+
+.share-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.share-btn img {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s;
+}
+
+.share-btn:hover img {
+    transform: scale(1.1);
+}
+
+#copyMessage {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: green;
+    margin-top: 4px;
+}
+
 @media (max-width: 768px) {
     body {
         overflow: hidden;

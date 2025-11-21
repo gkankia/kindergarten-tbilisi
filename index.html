@@ -113,6 +113,19 @@
                     <span class="material-symbols-outlined" style="font-size: 18px; color: #333333;">feedback</span>
                 </button>
             </div>
+
+            <div id="sharePanel" class="icon-panel">
+                <button id="fbShareBtn" class="share-btn" title="Share on Facebook">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" />
+                </button>
+                <button id="liShareBtn" class="share-btn" title="Share on LinkedIn">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" />
+                </button>
+                <button id="copyLinkBtn" class="share-btn" title="Copy link">
+                    <img src="https://cdn.jsdelivr.net/gh/tabler/tabler-icons/icons/clipboard.svg" alt="Copy Link" />
+                </button>
+                <span id="copyMessage">Copied!</span>
+            </div>
             
             <footer>
                 <div class="zaxis">
@@ -277,6 +290,28 @@
             }
         }
 
+        // Facebook
+        document.getElementById("fbShareBtn").addEventListener("click", () => {
+            const url = encodeURIComponent(getShareUrl());
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'noopener,noreferrer');
+        });
+
+        // LinkedIn
+        document.getElementById("liShareBtn").addEventListener("click", () => {
+            const url = encodeURIComponent(getShareUrl());
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener,noreferrer');
+        });
+
+        // Copy Link
+        document.getElementById("copyLinkBtn").addEventListener("click", () => {
+            const url = getShareUrl();
+            navigator.clipboard.writeText(url).then(() => {
+                const msg = document.getElementById("copyMessage");
+                msg.style.display = "inline";
+                setTimeout(() => { msg.style.display = "none"; }, 1500);
+            });
+        });
+
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw-gD_HSr3ZxM3u6gZg8W5BqmDLHacCttQ7MCSq8S8vYvk2-Wv5Kr1AZiMqylwbWOK/exec';
         
         const GEORGIAN_WORDS = ['მზე', 'მთა', 'წყალი', 'ხე', 'ყვავილი', 'ქარი', 'ღრუბელი', 'მდინარე', 'ტბა', 'ველი', 'ტყე', 'ქვა', 'ცა', 'მიწა', 
@@ -308,6 +343,59 @@
             attributionControl: true,
             preserveDrawingBuffer: true
         });
+
+        let mapState = {
+            lat: null,
+            lng: null,
+            zoom: null,
+            bearing: null,
+            pitch: null,
+            layer: null
+        };
+
+        map.on("moveend", () => {
+            const center = map.getCenter();
+            mapState.lat = center.lat.toFixed(6);
+            mapState.lng = center.lng.toFixed(6);
+            mapState.zoom = map.getZoom().toFixed(2);
+            mapState.bearing = map.getBearing().toFixed(2); // rotation
+            mapState.pitch = map.getPitch().toFixed(2);     // tilt
+        });
+
+        function getShareUrl() {
+            const params = new URLSearchParams();
+
+            if (mapState.lat) params.set("lat", mapState.lat);
+            if (mapState.lng) params.set("lng", mapState.lng);
+            if (mapState.zoom) params.set("z", mapState.zoom);
+            if (mapState.bearing) params.set("bearing", mapState.bearing);
+            if (mapState.pitch) params.set("pitch", mapState.pitch);
+            if (mapState.layer) params.set("layer", mapState.layer);
+
+            return `${window.location.origin}?${params.toString()}`;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        const lat = params.get("lat");
+        const lng = params.get("lng");
+        const zoom = params.get("z");
+        const bearing = params.get("bearing");
+        const pitch = params.get("pitch");
+        const layer = params.get("layer");
+
+        if (lat && lng && zoom) {
+            map.jumpTo({
+                center: [parseFloat(lng), parseFloat(lat)],
+                zoom: parseFloat(zoom),
+                bearing: bearing ? parseFloat(bearing) : 0,
+                pitch: pitch ? parseFloat(pitch) : 0
+            });
+        }
+
+        if (layer) {
+            setLayer(layer);
+        }
 
         map.addControl(new mapboxgl.NavigationControl());
 
