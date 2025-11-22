@@ -1316,10 +1316,9 @@ function generateSchoolIsochrone(lngLat) {
         .catch(err => console.error('Isochrone error:', err));
 }
 
-function switchTab(tab, bypassSurveyCheck = false) {
+function switchTab(tab) {
     // Prevent switching to results if user hasn't submitted a survey
-    // UNLESS it's a shared link (bypassSurveyCheck = true)
-    if (tab === 'results' && !userHasSubmittedSurvey && !bypassSurveyCheck) {
+    if (tab === 'results' && !userHasSubmittedSurvey) {
         alert('გთხოვთ, პირველ რიგში შეავსოთ კითხვარი');
         return;
     }

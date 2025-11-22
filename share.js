@@ -13,13 +13,13 @@ let mapState = {
     selectedLng: null,
     selectedLat: null,
     selectedName: null,
-    selectedType: null,
+    selectedType: null, // 'kindergarten' or 'school'
     routeFrom: null,
     routeTo: null,
     hasRoute: false
 };
 
-// Initialize state tracking
+// Initialize state tracking - call this after map is created
 function initializeMapStateTracking(mapInstance) {
     mapInstance.on("moveend", () => {
         const center = mapInstance.getCenter();
@@ -53,11 +53,7 @@ function getShareUrl() {
     if (currentSelectedKindergarten) {
         params.set("slng", currentSelectedKindergarten.lng.toFixed(6));
         params.set("slat", currentSelectedKindergarten.lat.toFixed(6));
-        
-        // Use currentFacilityType to distinguish between kindergarten and school
-        if (currentFacilityType) {
-            params.set("stype", currentFacilityType);
-        }
+        params.set("stype", "kindergarten"); // Update this logic to distinguish schools
     }
     if (currentSelectedKindergartenName) {
         params.set("sname", encodeURIComponent(currentSelectedKindergartenName));
@@ -94,10 +90,10 @@ function applyUrlState() {
         });
     }
 
-    // Apply tab (BYPASS survey check for shared links)
+    // Apply tab (automatically switch to results if shared from results)
     if (params.has("tab")) {
         const tab = params.get("tab");
-        switchTab(tab, true); // Pass true to bypass survey check
+        switchTab(tab);
     }
 
     // Apply mode
@@ -121,11 +117,7 @@ function applyUrlState() {
         // Wait for map and data to load
         const restoreState = () => {
             // Check if appropriate data is loaded based on type
-            const kindergartenDataLoaded = kindergartenData && kindergartenData.features;
-            const schoolDataLoaded = typeof schoolData !== 'undefined' && schoolData && schoolData.features;
-            
-            const dataLoaded = (stype === "kindergarten" && kindergartenDataLoaded) ||
-                               (stype === "school" && schoolDataLoaded);
+            const dataLoaded = (stype === "kindergarten" && kindergartenData && kindergartenData.features);
             
             if (!dataLoaded) {
                 // Data not loaded yet, wait
@@ -135,7 +127,6 @@ function applyUrlState() {
             
             currentSelectedKindergarten = { lng: slng, lat: slat };
             currentSelectedKindergartenName = sname;
-            currentFacilityType = stype; // Set the facility type
             
             // Zoom to location and generate isochrone
             zoomToKindergarten({ lng: slng, lat: slat });
