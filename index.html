@@ -266,6 +266,7 @@
         </div>
     </div>
 
+    <script src="share.js"></script>
     <script src="questionnaires.js"></script>
     <script src="data-feedback.js"></script>
     <script src="load-accidents.js"></script>
@@ -320,74 +321,6 @@
             zoom: 12,
             attributionControl: true,
             preserveDrawingBuffer: true
-        });
-
-        // Track map state
-        // Initialize mapState
-        let mapState = {
-            lat: null,
-            lng: null,
-            zoom: null,
-            bearing: null,
-            pitch: null
-        };
-
-        // Track movements (center, zoom, bearing, pitch)
-        map.on("moveend", () => {
-            const center = map.getCenter();
-            mapState.lat = center.lat.toFixed(6);
-            mapState.lng = center.lng.toFixed(6);
-            mapState.zoom = map.getZoom().toFixed(2);
-            mapState.bearing = map.getBearing().toFixed(2);
-            mapState.pitch = map.getPitch().toFixed(2);
-        });
-
-        // Generate share url
-        function getShareUrl() {
-            const params = new URLSearchParams();
-
-            if (mapState.lat) params.set("lat", mapState.lat);
-            if (mapState.lng) params.set("lng", mapState.lng);
-            if (mapState.zoom) params.set("z", mapState.zoom);
-            if (mapState.bearing) params.set("bearing", mapState.bearing);
-            if (mapState.pitch) params.set("pitch", mapState.pitch);
-
-            return `${window.location.origin}?${params.toString()}`;
-        }
-
-        //Apply state on page load
-        const params = new URLSearchParams(window.location.search);
-
-        if (params.has("lat") && params.has("lng") && params.has("z")) {
-            map.jumpTo({
-                center: [parseFloat(params.get("lng")), parseFloat(params.get("lat"))],
-                zoom: parseFloat(params.get("z")),
-                bearing: params.has("bearing") ? parseFloat(params.get("bearing")) : 0,
-                pitch: params.has("pitch") ? parseFloat(params.get("pitch")) : 0
-            });
-        }
-
-        //Share buttons
-        // Facebook
-        document.getElementById("fbShareBtn").addEventListener("click", () => {
-            const url = encodeURIComponent(getShareUrl());
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'noopener,noreferrer');
-        });
-
-        // LinkedIn
-        document.getElementById("liShareBtn").addEventListener("click", () => {
-            const url = encodeURIComponent(getShareUrl());
-            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener,noreferrer');
-        });
-
-        // Copy Link
-        document.getElementById("copyLinkBtn").addEventListener("click", () => {
-            const url = getShareUrl();
-            navigator.clipboard.writeText(url).then(() => {
-                const msg = document.getElementById("copyMessage");
-                msg.style.display = "inline";
-                setTimeout(() => { msg.style.display = "none"; }, 1500);
-            });
         });
 
         map.addControl(new mapboxgl.NavigationControl());
@@ -2281,6 +2214,16 @@ document.getElementById('surveyForm').onsubmit = async (e) => {
             loadKindergartenData();
             loadDataFromSheets();
             updateGridLayer();
+            // Initialize state tracking
+            initializeMapStateTracking(map);
+            
+            // Initialize share buttons
+            initializeShareButtons();
+            
+            // Apply URL state after everything is loaded
+            setTimeout(() => {
+                applyUrlState();
+            }, 2000);
         });
 
         map.on('moveend', updateGridLayer);
