@@ -2,9 +2,6 @@
 "type": "FeatureCollection",
 "name": "kindergartens_tbilisi_1",
 "features": [
-{ "type": "Feature", "properties": { "id": 0, "name": "  ბაღი 67", "name_location": "მოციქულთა სწორი ნინოს 17ა (სოფელი დიღომი)", "phone": "00995593671217", "phone_1": null, "email": null, "registration_code": 405275349, "facebook_link": "https://www.facebook.com/samocdameshvide/", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.762665039486819, 41.765593002669597 ] } },
-{ "type": "Feature", "properties": { "id": 1, "name": "  ბაღი 52", "name_location": "იოსებიძის 62", "phone": "00995322371906", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.771068113776096, 41.726828869546445 ] } },
-{ "type": "Feature", "properties": { "id": 2, "name": "  ბაღი 63", "name_location": "ნუცუბიძის 42", "phone": "00995322392598", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.747510470277945, 41.728426433279452 ] } },
 { "type": "Feature", "properties": { "id": 3, "name": "ბაღი 70", "name_location": "გოძიაშვილის II შესახვევი 10 (ვაშლიჯვარი)", "phone": "00995322527462", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.763640029280197, 41.7538125714999 ] } },
 { "type": "Feature", "properties": { "id": 4, "name": "ბაღი 87", "name_location": "ცაგარელის 102", "phone": "00995322370947", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.759904237449753, 41.723424608300547 ] } },
 { "type": "Feature", "properties": { "id": 5, "name": "ბაღი 97", "name_location": "გაგარინის შეს., იმედაშვილის 18/17", "phone": "00995599870163", "type": "საჯარო ბაგა-ბაღი" }, "geometry": { "type": "Point", "coordinates": [ 44.768347675440054, 41.733502299223503 ] } },
