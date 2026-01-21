@@ -297,7 +297,7 @@
                                 'ვარსკვლავი', 'მთვარე', 'ნისლი', 'თოვლი', 'წვიმა', 'რადიო', 'წიგნი', 'სახლი', 'გზა', 'ხიდი', 'კარი', 'ფანჯარა', 
                                 'ბაღი', 'ეზო', 'ქუჩა', 'მოედანი', 'ციხე', 'ეკლესია', 'მუზეუმი', 'პარკი', 'ბულვარი', 'სკვერი', 'შადრევანი', 'ძეგლი', 
                                 'თეატრი', 'კინო', 'ყურძენი', 'ვაშლი', 'მსხალი', 'ატამი', 'ფორთოხალი', 'ლიმონი', 'ჟოლო', 'კივი', 'ბანანი', 'საზამთრო', 
-                                'ოლიგარქია', 'კორუფცია', 'ყაჩაღები', 'ავტობუსი', 'ტროტუარი'];
+                                'ოლიგარქია', 'კორუფცია', 'საპატრიარქო', 'ყაჩაღები', 'ავტობუსი', 'ტროტუარი', 'ბტნბძნ'];
         
         function toggleDropdown(id) {
             const content = document.getElementById(id);
@@ -317,8 +317,8 @@
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/jorjone90/cmd1cg82i000101s61qwaca16',
-            center: [41.6735867098894, 42.142609674570565], //<--ფოთი //[44.800, 41.7350] თბილისი,
-            zoom: 15, //12
+            center: [44.800, 41.7350],
+            zoom: 12,
             attributionControl: true,
             preserveDrawingBuffer: true
         });
@@ -349,7 +349,7 @@
         let resultsMode = 'walking';
         let chartInstances = {};
         
-        const ORIGIN_LNG = 41.0, ORIGIN_LAT = 41.0, GRID_EXTENT_LNG = 47.0, GRID_EXTENT_LAT = 44.0, GRID_SIZE_METERS = 100;
+        const ORIGIN_LNG = 41.0, ORIGIN_LAT = 41.0, GRID_EXTENT_LNG = 47.0, GRID_EXTENT_LAT = 44.0, GRID_SIZE_METERS = 500;
         
         function metersToDegrees(lat, meters) {
             return {
